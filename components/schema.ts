@@ -83,24 +83,24 @@ const formSchema = z
                     message: '请选择日期',
                 })
             }
-            // if (firstEpisodeTimestamp > dayjs().unix()) {
-            //     ctx.addIssue({
-            //         code: ZodIssueCode.custom,
-            //         path: ['firstEpisodeYYYYMMDDHHmm'],
-            //         message: '当前番剧还未播出，请选择即将更新状态',
-            //     })
-            // }
-            // if (totalEpisode !== 0) {
-            //     const lastEpisodeTimestamp = getLastEpisodeTimestamp({ firstEpisodeTimestamp, totalEpisode })
+            if (firstEpisodeTimestamp > dayjs().unix()) {
+                ctx.addIssue({
+                    code: ZodIssueCode.custom,
+                    path: ['firstEpisodeYYYYMMDDHHmm'],
+                    message: '当前番剧还未播出，请选择即将更新状态',
+                })
+            }
+            if (totalEpisode !== 0) {
+                const lastEpisodeTimestamp = getLastEpisodeTimestamp({ firstEpisodeTimestamp, totalEpisode })
 
-            //     if (lastEpisodeTimestamp > dayjs().unix()) {
-            //         ctx.addIssue({
-            //             code: ZodIssueCode.custom,
-            //             path: ['firstEpisodeYYYYMMDDHHmm'],
-            //             message: '当前番剧还未完结，请选择连载中状态',
-            //         })
-            //     }
-            // }
+                if (lastEpisodeTimestamp > dayjs().unix()) {
+                    ctx.addIssue({
+                        code: ZodIssueCode.custom,
+                        path: ['firstEpisodeYYYYMMDDHHmm'],
+                        message: '当前番剧还未完结，请选择连载中状态',
+                    })
+                }
+            }
         }
 
         if (val.status === EStatus.toBeUpdated) {

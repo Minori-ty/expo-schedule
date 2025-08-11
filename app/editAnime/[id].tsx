@@ -50,20 +50,24 @@ export default function EditAnime() {
         const lastEpisodeYYYYMMDDHHmm = dayjs
             .unix(getLastEpisodeTimestamp({ firstEpisodeTimestamp, totalEpisode }))
             .format('YYYY-MM-DD HH:mm')
-        if (result.status === EStatus.toBeUpdated) {
+
+        const status = result.status
+        if (status === EStatus.toBeUpdated) {
             return {
                 ...reset,
+                status,
                 totalEpisode,
                 firstEpisodeYYYYMMDDHHmm,
             }
-        } else if (result.status === EStatus.completed) {
+        } else if (status === EStatus.completed) {
             return {
                 ...reset,
+                status,
                 totalEpisode,
                 lastEpisodeYYYYMMDDHHmm,
             }
         } else {
-            return { totalEpisode, ...reset }
+            return { ...reset, status, totalEpisode }
         }
     }, [data])
 
