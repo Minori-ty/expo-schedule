@@ -329,9 +329,6 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
                 control={control}
                 name="firstEpisodeYYYYMMDDHHmm"
                 render={({ field }) => {
-                    console.log(field.value)
-                    console.log(fullErrors.firstEpisodeYYYYMMDDHHmm)
-
                     return (
                         <DatePicker
                             ref={datepickerRef}
