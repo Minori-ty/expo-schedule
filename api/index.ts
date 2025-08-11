@@ -14,14 +14,19 @@ type THandleAddAnime = DeepExpand<Omit<TAddAnimeData, 'eventId'>>
 export async function handleAddAnime(animeData: THandleAddAnime) {
     return await db.transaction(async tx => {
         const { name, totalEpisode, firstEpisodeTimestamp, cover } = animeData
-
+        const lastEpisodeTimestamp = getLastEpisodeTimestamp({ firstEpisodeTimestamp, totalEpisode })
         const currentEpisode = getcurrentEpisode({ firstEpisodeTimestamp, totalEpisode })
-        const eventId = await addCalendarEvent({
-            name,
-            firstEpisodeTimestamp,
-            currentEpisode,
-            totalEpisode,
-        })
+        const status = getStatus(firstEpisodeTimestamp, lastEpisodeTimestamp)
+        let eventId = null
+        if (status === EStatus.serializing || status === EStatus.toBeUpdated) {
+            eventId = await addCalendarEvent({
+                name,
+                firstEpisodeTimestamp,
+                currentEpisode,
+                totalEpisode,
+            })
+        }
+
         await addAnime(tx, {
             cover,
             name,

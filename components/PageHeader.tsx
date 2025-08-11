@@ -12,7 +12,7 @@ interface IProps {
 
 function PageHeader({ title, actions, leading, className }: IProps) {
     return (
-        <View className={cn('h-14 flex-row items-center justify-between px-3', className)}>
+        <View className={cn('h-12 flex-row items-center justify-between px-3', className)}>
             <View className="flex-row items-center">
                 {leading}
                 <Text className="ml-2 text-2xl font-bold text-gray-900">{title}</Text>

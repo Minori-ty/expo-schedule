@@ -79,14 +79,14 @@ const formSchema = z
             if (lastEpisodeYYYYMMDDHHmm === undefined) {
                 ctx.addIssue({
                     code: ZodIssueCode.custom,
-                    path: ['firstEpisodeYYYYMMDDHHmm'],
+                    path: ['lastEpisodeYYYYMMDDHHmm'],
                     message: '请选择日期',
                 })
             }
             if (firstEpisodeTimestamp > dayjs().unix()) {
                 ctx.addIssue({
                     code: ZodIssueCode.custom,
-                    path: ['firstEpisodeYYYYMMDDHHmm'],
+                    path: ['lastEpisodeYYYYMMDDHHmm'],
                     message: '当前番剧还未播出，请选择即将更新状态',
                 })
             }
@@ -96,7 +96,7 @@ const formSchema = z
                 if (lastEpisodeTimestamp > dayjs().unix()) {
                     ctx.addIssue({
                         code: ZodIssueCode.custom,
-                        path: ['firstEpisodeYYYYMMDDHHmm'],
+                        path: ['lastEpisodeYYYYMMDDHHmm'],
                         message: '当前番剧还未完结，请选择连载中状态',
                     })
                 }

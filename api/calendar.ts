@@ -46,3 +46,7 @@ export async function deleteCalendarByAnimeId(animeId: number) {
         await tx.update(animeTable).set({ eventId: null }).where(eq(animeTable.id, animeId))
     })
 }
+
+export async function deleteCalendarByAnimeIds(animeIds: number[]) {
+    return await Promise.all(animeIds.map(deleteCalendarByAnimeId))
+}
