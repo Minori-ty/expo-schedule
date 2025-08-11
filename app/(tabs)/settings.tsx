@@ -7,7 +7,6 @@ import PageHeader from '@/components/PageHeader'
 import Icon from '@/components/ui/Icon'
 import { db } from '@/db'
 import { animeTable } from '@/db/schema'
-import { EStatus, EWeekday } from '@/enums'
 import { themeColorPurple } from '@/styles'
 import { deleteJsonFile, exportJsonFile, importJsonFile, scanJsonFile } from '@/utils/file.android'
 import { queryClient } from '@/utils/react-query'
@@ -191,26 +190,9 @@ export default function Setting() {
             z.object({
                 id: z.number(),
                 name: z.string(),
-                currentEpisode: z.number(),
                 totalEpisode: z.number(),
                 cover: z.string(),
-                updateWeekday: z.union([
-                    z.literal(EWeekday.monday),
-                    z.literal(EWeekday.tuesday),
-                    z.literal(EWeekday.wednesday),
-                    z.literal(EWeekday.thursday),
-                    z.literal(EWeekday.friday),
-                    z.literal(EWeekday.saturday),
-                    z.literal(EWeekday.sunday),
-                ]),
-                firstEpisodeYYYYMMDDHHmm: z.string(),
-                lastEpisodeYYYYMMDDHHmm: z.string(),
-                updateTimeHHmm: z.string(),
-                status: z.union([
-                    z.literal(EStatus.completed),
-                    z.literal(EStatus.serializing),
-                    z.literal(EStatus.toBeUpdated),
-                ]),
+                firstEpisodeTimestamp: z.number().gte(0),
             })
         ),
     })
