@@ -35,12 +35,15 @@ export default function Index() {
                 firstEpisodeTimestamp: getFirstEpisodeTimestamp({ currentEpisode, updateTimeHHmm, updateWeekday }),
             })
         } else if (data.status === EStatus.completed) {
-            const { firstEpisodeYYYYMMDDHHmm } = data
+            const { lastEpisodeYYYYMMDDHHmm } = data
             handleAddAnimeMution({
                 name,
                 totalEpisode,
                 cover,
-                firstEpisodeTimestamp: dayjs(firstEpisodeYYYYMMDDHHmm, 'YYYY-MM-DD HH:mm').second(0).unix(),
+                firstEpisodeTimestamp: dayjs(lastEpisodeYYYYMMDDHHmm, 'YYYY-MM-DD HH:mm')
+                    .subtract(totalEpisode - 1, 'week')
+                    .second(0)
+                    .unix(),
             })
         } else if (data.status === EStatus.toBeUpdated) {
             const { firstEpisodeYYYYMMDDHHmm } = data

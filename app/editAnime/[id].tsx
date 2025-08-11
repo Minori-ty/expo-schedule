@@ -7,7 +7,7 @@ import { db } from '@/db'
 import { animeTable } from '@/db/schema'
 import { EStatus } from '@/enums'
 import { queryClient } from '@/utils/react-query'
-import { getFirstEpisodeTimestamp } from '@/utils/time'
+import { getFirstEpisodeTimestamp, getLastEpisodeTimestamp } from '@/utils/time'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { eq } from 'drizzle-orm'
@@ -44,11 +44,26 @@ export default function EditAnime() {
         if (!data[0]) {
             return formDefaultValues
         }
-        const { firstEpisodeTimestamp, lastEpisodeTimestamp, eventId, ...reset } = parseAnimeData(data[0])
+        const result = parseAnimeData(data[0])
+        const { firstEpisodeTimestamp, lastEpisodeTimestamp, eventId, totalEpisode, ...reset } = result
         const firstEpisodeYYYYMMDDHHmm = dayjs.unix(firstEpisodeTimestamp).format('YYYY-MM-DD HH:mm')
-        return {
-            ...reset,
-            firstEpisodeYYYYMMDDHHmm,
+        const lastEpisodeYYYYMMDDHHmm = dayjs
+            .unix(getLastEpisodeTimestamp({ firstEpisodeTimestamp, totalEpisode }))
+            .format('YYYY-MM-DD HH:mm')
+        if (result.status === EStatus.toBeUpdated) {
+            return {
+                ...reset,
+                totalEpisode,
+                firstEpisodeYYYYMMDDHHmm,
+            }
+        } else if (result.status === EStatus.completed) {
+            return {
+                ...reset,
+                totalEpisode,
+                lastEpisodeYYYYMMDDHHmm,
+            }
+        } else {
+            return { totalEpisode, ...reset }
         }
     }, [data])
 
@@ -71,13 +86,16 @@ export default function EditAnime() {
                 firstEpisodeTimestamp: getFirstEpisodeTimestamp({ currentEpisode, updateTimeHHmm, updateWeekday }),
             })
         } else if (data.status === EStatus.completed) {
-            const { firstEpisodeYYYYMMDDHHmm } = data
+            const { lastEpisodeYYYYMMDDHHmm } = data
             updateAnimeMution({
                 animeId: Number(id),
                 name,
                 totalEpisode,
                 cover,
-                firstEpisodeTimestamp: dayjs(firstEpisodeYYYYMMDDHHmm, 'YYYY-MM-DD HH:mm').second(0).unix(),
+                firstEpisodeTimestamp: dayjs(lastEpisodeYYYYMMDDHHmm, 'YYYY-MM-DD HH:mm')
+                    .subtract(totalEpisode - 1, 'week')
+                    .second(0)
+                    .unix(),
             })
         } else if (data.status === EStatus.toBeUpdated) {
             const { firstEpisodeYYYYMMDDHHmm } = data

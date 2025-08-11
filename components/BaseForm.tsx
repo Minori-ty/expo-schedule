@@ -1,7 +1,6 @@
 import DatePicker, { type IDatePickerRef } from '@/components/Datepicker'
 import { EStatus, EWeekday } from '@/enums'
 import { cn } from '@/utils/cn'
-import { getFirstEpisodeTimestamp } from '@/utils/time'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Picker } from '@react-native-picker/picker'
 import { useUpdateEffect } from 'ahooks'
@@ -55,7 +54,8 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
 
     const options = EStatus.toSelect()
 
-    const datepickerRef = useRef<IDatePickerRef>(null)
+    const firstEpisodeRef = useRef<IDatePickerRef>(null)
+    const lastEpisodeRef = useRef<IDatePickerRef>(null)
     const timepickerRef = useRef<IDatePickerRef>(null)
     const {
         control,
@@ -86,46 +86,56 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
                     firstEpisodeYYYYMMDDHHmm: string
                 }
             >
+        > &
+        FieldErrors<
+            Extract<
+                TFormSchema,
+                {
+                    lastEpisodeYYYYMMDDHHmm: string
+                }
+            >
         > = errors
 
-    const [currentEpisode, totalEpisode, firstEpisodeYYYYMMDDHHmm, updateTimeHHmm, updateWeekday, status] = watch([
+    const [currentEpisode, totalEpisode, firstEpisodeYYYYMMDDHHmm, lastEpisodeYYYYMMDDHHmm, status] = watch([
         'currentEpisode',
         'totalEpisode',
         'firstEpisodeYYYYMMDDHHmm',
-        'updateTimeHHmm',
-        'updateWeekday',
+        'lastEpisodeYYYYMMDDHHmm',
         'status',
     ])
 
     useUpdateEffect(() => {
         console.log('触发update')
-        trigger(['currentEpisode', 'totalEpisode', 'firstEpisodeYYYYMMDDHHmm'])
-    }, [totalEpisode, currentEpisode, firstEpisodeYYYYMMDDHHmm, status])
+        trigger(['currentEpisode', 'totalEpisode', 'firstEpisodeYYYYMMDDHHmm', 'lastEpisodeYYYYMMDDHHmm'])
+    }, [totalEpisode, currentEpisode, firstEpisodeYYYYMMDDHHmm, lastEpisodeYYYYMMDDHHmm, status])
 
     const onSubmit: SubmitHandler<TFormSchema> = async data => {
         submit(data)
     }
 
+    const getFirstEpisodeDateTime = useMemo<string>(() => {
+        if (totalEpisode < 1) {
+            return '-'
+        }
+        if (!lastEpisodeYYYYMMDDHHmm) {
+            return '-'
+        }
+        return dayjs(lastEpisodeYYYYMMDDHHmm, 'YYYY-MM-DD HH:mm')
+            .subtract(totalEpisode - 1, 'week')
+            .format('YYYY-MM-DD HH:mm')
+    }, [lastEpisodeYYYYMMDDHHmm, totalEpisode])
+
     const getLastEpisodeDateTime = useMemo<string>(() => {
         if (totalEpisode < 1) {
             return '-'
         }
-        if (status === EStatus.serializing) {
-            if (updateWeekday === '') return '-'
-            return dayjs
-                .unix(getFirstEpisodeTimestamp({ currentEpisode, updateTimeHHmm, updateWeekday }))
-                .add(totalEpisode - 1, 'week')
-                .format('YYYY-MM-DD HH:mm')
-        } else if (status === EStatus.completed) {
-            return dayjs(firstEpisodeYYYYMMDDHHmm)
-                .add(totalEpisode - 1, 'week')
-                .format('YYYY-MM-DD HH:mm')
-        } else {
-            return dayjs(firstEpisodeYYYYMMDDHHmm)
-                .add(totalEpisode - 1, 'week')
-                .format('YYYY-MM-DD HH:mm')
+        if (!firstEpisodeYYYYMMDDHHmm) {
+            return '-'
         }
-    }, [status, currentEpisode, totalEpisode, firstEpisodeYYYYMMDDHHmm, updateTimeHHmm, updateWeekday])
+        return dayjs(firstEpisodeYYYYMMDDHHmm, 'YYYY-MM-DD HH:mm')
+            .add(totalEpisode - 1, 'week')
+            .format('YYYY-MM-DD HH:mm')
+    }, [firstEpisodeYYYYMMDDHHmm, totalEpisode])
 
     const removeLeadingZeros = (str: string) => {
         // 若字符串为空或全为0，返回0
@@ -176,7 +186,8 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
                     )}
                 />
             </FormItem>
-            {status !== EStatus.serializing && (
+
+            {status === EStatus.toBeUpdated && (
                 <FormItem label="首播时间" error={fullErrors.firstEpisodeYYYYMMDDHHmm}>
                     <Controller
                         control={control}
@@ -188,7 +199,7 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
                                     'h-10 flex-row items-center gap-3 rounded-md border border-[#ccc] pl-3',
                                     fullErrors.firstEpisodeYYYYMMDDHHmm && 'border-red-500'
                                 )}
-                                onPress={() => datepickerRef.current?.open()}
+                                onPress={() => firstEpisodeRef.current?.open()}
                             >
                                 <Icon name="CalendarClock" size={22} />
                                 <Text className={cn('text-lg', field.value ?? 'text-gray-400')}>
@@ -199,7 +210,8 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
                     />
                 </FormItem>
             )}
-            {status !== EStatus.serializing && (
+
+            {status === EStatus.toBeUpdated && (
                 <FormItem label="完结时间" error={undefined}>
                     <Controller
                         control={control}
@@ -209,6 +221,45 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
                                 <Icon name="CalendarCheck" size={22} className="text-gray-400" />
                                 <Text className="text-lg text-gray-400">{getLastEpisodeDateTime}</Text>
                             </View>
+                        )}
+                    />
+                </FormItem>
+            )}
+
+            {status === EStatus.completed && (
+                <FormItem label="首播时间" error={undefined}>
+                    <Controller
+                        control={control}
+                        name="lastEpisodeYYYYMMDDHHmm"
+                        render={() => (
+                            <View className="h-10 flex-row items-center gap-3 rounded-md border border-[#ccc] bg-gray-100 pl-3">
+                                <Icon name="CalendarCheck" size={22} className="text-gray-400" />
+                                <Text className="text-lg text-gray-400">{getFirstEpisodeDateTime}</Text>
+                            </View>
+                        )}
+                    />
+                </FormItem>
+            )}
+
+            {status === EStatus.completed && (
+                <FormItem label="完结时间" error={fullErrors.lastEpisodeYYYYMMDDHHmm}>
+                    <Controller
+                        control={control}
+                        name="lastEpisodeYYYYMMDDHHmm"
+                        render={({ field }) => (
+                            <TouchableOpacity
+                                activeOpacity={0.5}
+                                className={cn(
+                                    'h-10 flex-row items-center gap-3 rounded-md border border-[#ccc] pl-3',
+                                    fullErrors.lastEpisodeYYYYMMDDHHmm && 'border-red-500'
+                                )}
+                                onPress={() => lastEpisodeRef.current?.open()}
+                            >
+                                <Icon name="CalendarClock" size={22} />
+                                <Text className={cn('text-lg', field.value ?? 'text-gray-400')}>
+                                    {field.value ?? '请选择日期'}
+                                </Text>
+                            </TouchableOpacity>
                         )}
                     />
                 </FormItem>
@@ -331,7 +382,22 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
                 render={({ field }) => {
                     return (
                         <DatePicker
-                            ref={datepickerRef}
+                            ref={firstEpisodeRef}
+                            date={field.value}
+                            onChange={date => {
+                                field.onChange(dayjs(date).format('YYYY-MM-DD HH:mm'))
+                            }}
+                        />
+                    )
+                }}
+            />
+            <Controller
+                control={control}
+                name="lastEpisodeYYYYMMDDHHmm"
+                render={({ field }) => {
+                    return (
+                        <DatePicker
+                            ref={lastEpisodeRef}
                             date={field.value}
                             onChange={date => {
                                 field.onChange(dayjs(date).format('YYYY-MM-DD HH:mm'))
