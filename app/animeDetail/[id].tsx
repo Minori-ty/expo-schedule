@@ -1,4 +1,4 @@
-import { parseAnimeData } from '@/api/anime'
+import { handleGetAnimeById } from '@/api/anime'
 import { addCalendarByAnimeId, deleteCalendarByAnimeId } from '@/api/calendar'
 // import { handleClearCalendarByAnimeId, handleCreateAndBindCalendar, hasCalendar } from '@/api/calendar'
 import Loading from '@/components/lottie/Loading'
@@ -11,7 +11,7 @@ import { blurhash, themeColorPurple } from '@/styles'
 import { cn } from '@/utils/cn'
 import { queryClient } from '@/utils/react-query'
 import { getcurrentEpisode, getStatus } from '@/utils/time'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { type ClassValue } from 'clsx'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
@@ -48,24 +48,24 @@ function AnimeDetail() {
     const navigation = useNavigation()
     const router = useRouter()
 
-    // const {
-    // data: anime = {
-    //     id: -1,
-    //     name: '',
-    //     currentEpisode: 0,
-    //     totalEpisode: 0,
-    //     cover: '',
-    //     updateWeekday: EWeekday.monday,
-    //     firstEpisodeYYYYMMDDHHmm: dayjs().format('YYYY-MM-DD HH:mm'),
-    //     lastEpisodeYYYYMMDDHHmm: dayjs().format('YYYY-MM-DD HH:mm'),
-    //     status: EStatus.serializing,
-    //     updateTimeHHmm: '',
-    // },
-    //     isLoading,
-    // } = useQuery({
-    //     queryKey: ['anime-detail', id],
-    //     queryFn: () => handleGetAnimeById(Number(id)),
-    // })
+    const {
+        data: anime = {
+            id: -1,
+            name: '',
+            currentEpisode: 0,
+            totalEpisode: 0,
+            cover: '',
+            updateWeekday: EWeekday.monday,
+            firstEpisodeTimestamp: dayjs().unix(),
+            lastEpisodeTimestamp: dayjs().unix(),
+            status: EStatus.serializing,
+            updateTimeHHmm: '',
+        },
+        isLoading,
+    } = useQuery({
+        queryKey: ['anime-detail', id],
+        queryFn: () => handleGetAnimeById(Number(id)),
+    })
 
     const { data, updatedAt } = useLiveQuery(
         db
@@ -74,25 +74,25 @@ function AnimeDetail() {
             .where(eq(animeTable.id, Number(id)))
     )
 
-    const anime = useMemo(() => {
-        if (!data[0]) {
-            return {
-                id: -1,
-                name: '',
-                currentEpisode: 0,
-                totalEpisode: 0,
-                cover: '',
-                updateWeekday: EWeekday.monday,
-                firstEpisodeTimestamp: dayjs().unix(),
-                lastEpisodeTimestamp: dayjs().unix(),
-                status: EStatus.serializing,
-                updateTimeHHmm: '',
-            }
-        }
-        return parseAnimeData(data[0])
-    }, [data])
+    // const anime = useMemo(() => {
+    //     if (!data[0]) {
+    // return {
+    //     id: -1,
+    //     name: '',
+    //     currentEpisode: 0,
+    //     totalEpisode: 0,
+    //     cover: '',
+    //     updateWeekday: EWeekday.monday,
+    //     firstEpisodeTimestamp: dayjs().unix(),
+    //     lastEpisodeTimestamp: dayjs().unix(),
+    //     status: EStatus.serializing,
+    //     updateTimeHHmm: '',
+    // }
+    //     }
+    //     return parseAnimeData(data[0])
+    // }, [data])
 
-    const isLoading = useMemo(() => {
+    const isCalendarLoading = useMemo(() => {
         return !updatedAt
     }, [updatedAt])
 
@@ -411,7 +411,7 @@ function AnimeDetail() {
                             <TouchableOpacity
                                 className={cn(
                                     'mt-3 flex-row items-center justify-center rounded-xl bg-green-500 py-4',
-                                    isLoading && 'bg-gray-400'
+                                    isCalendarLoading && 'bg-gray-400'
                                 )}
                                 activeOpacity={0.5}
                                 onPress={handleSubscribe}
@@ -428,7 +428,7 @@ function AnimeDetail() {
                             <TouchableOpacity
                                 className={cn(
                                     'mt-3 flex-row items-center justify-center rounded-xl bg-red-500 py-4',
-                                    isLoading && 'bg-gray-400'
+                                    isCalendarLoading && 'bg-gray-400'
                                 )}
                                 activeOpacity={0.5}
                                 onPress={handleUnsubscribe}

@@ -12,7 +12,7 @@ export interface IAddAnimeData {
     totalEpisode: number
     cover: string
     firstEpisodeTimestamp: number
-    eventId: string | null
+    eventId?: string | null
 }
 
 export type TAddAnimeData = DeepExpand<{
@@ -62,8 +62,9 @@ export async function deleteAnimeById(tx: TTx, id: number) {
     console.log('删除动漫成功')
 }
 
-interface IUpdateAnimeByAnimeId extends IAddAnimeData {
+export interface IUpdateAnimeByAnimeId extends IAddAnimeData {
     animeId: number
+    eventId: string | null
 }
 
 /**
@@ -75,11 +76,10 @@ interface IUpdateAnimeByAnimeId extends IAddAnimeData {
 export async function updateAnimeById(tx: TTx, data: DeepExpand<IUpdateAnimeByAnimeId>) {
     const result = await getAnimeById(tx, data.animeId)
     if (!result) {
-        console.log('对应的animeId不存在，就不更新数据了')
+        console.log('animeId对应的动漫不存在，就不更新数据了')
         return
     }
     const { name, cover, firstEpisodeTimestamp, totalEpisode, eventId } = data
-
     await tx
         .update(animeTable)
         .set({
@@ -87,11 +87,10 @@ export async function updateAnimeById(tx: TTx, data: DeepExpand<IUpdateAnimeByAn
             cover,
             firstEpisodeTimestamp,
             totalEpisode,
-            createdAt: dayjs().unix(),
             eventId,
+            createdAt: dayjs().unix(),
         })
         .where(eq(animeTable.id, data.animeId))
-    // console.log('更新动漫数据成功')
 }
 
 export interface IAnime {
