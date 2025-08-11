@@ -4,11 +4,10 @@ import { deleteCalendarByAnimeId, deleteCalendarByAnimeIds } from '@/api/calenda
 import Checkbox from '@/components/Checkbox'
 import { Modal } from '@/components/Modal/index'
 import PageHeader from '@/components/PageHeader'
-import Icon from '@/components/ui/Icon'
 import { db } from '@/db'
 import { animeTable } from '@/db/schema'
 import { themeColorPurple } from '@/styles'
-import { deleteJsonFile, exportJsonFile, importJsonFile, scanJsonFile } from '@/utils/file.android'
+import { deleteJsonFile, DIR, exportJsonFile, importJsonFile, scanJsonFile } from '@/utils/file.android'
 import { queryClient } from '@/utils/react-query'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
@@ -337,7 +336,7 @@ export default function Setting() {
                 >
                     <View className="p-4">
                         {/* 标题 */}
-                        <PageHeader title="数据管理" leading={<Icon size={24} name="Settings" />}></PageHeader>
+                        <PageHeader title="数据管理"></PageHeader>
 
                         {/* 数据管理区域 */}
                         <View className="mb-6 rounded-lg bg-white p-4 shadow-sm">
@@ -442,7 +441,7 @@ export default function Setting() {
                                                 </View>
                                                 <View>
                                                     <Text className="text-xs text-gray-500" numberOfLines={1}>
-                                                        路径：/Android/data/com.minority.app.com/files/*
+                                                        路径：{DIR}
                                                     </Text>
                                                 </View>
                                             </View>

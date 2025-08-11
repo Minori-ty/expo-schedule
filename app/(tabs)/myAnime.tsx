@@ -4,7 +4,6 @@ import Loading from '@/components/lottie/Loading'
 import { Modal } from '@/components/Modal'
 import PageHeader from '@/components/PageHeader'
 import Icon from '@/components/ui/Icon'
-import { IconSymbol } from '@/components/ui/IconSymbol'
 import { db } from '@/db'
 import { animeTable } from '@/db/schema'
 import { EStatus } from '@/enums'
@@ -14,9 +13,9 @@ import { cn } from '@/utils/cn'
 import { queryClient } from '@/utils/react-query'
 import { useMutation } from '@tanstack/react-query'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
-import { debounce } from 'es-toolkit'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
+import { debounce } from 'lodash-es'
 import React, { createContext, memo, useCallback, useContext, useMemo } from 'react'
 import {
     Dimensions,
@@ -92,7 +91,10 @@ export default function MyAnime() {
                 router.push('/addAnime')
             },
             300,
-            { edges: ['leading', 'trailing'] }
+            {
+                leading: true,
+                trailing: false,
+            }
         )
 
         debouncePush()
@@ -104,13 +106,19 @@ export default function MyAnime() {
         <SafeAreaView edges={['top']} className="flex-1 bg-white pt-4">
             <myAnimeContext.Provider value={{ isLoading, onRefetch, handleDeleteAnimeMutation }}>
                 <PageHeader
+                    // leading={<Icon name="Heart" size={24} />}
                     title="我的追番"
                     actions={[
-                        <TouchableOpacity onPress={handlePress} key={'header'}>
-                            <IconSymbol size={35} name="plus.app.fill" color="black" />
+                        <TouchableOpacity onPress={() => router.push('/search')} key={'search'}>
+                            <Icon name="Search" size={24} />
+                        </TouchableOpacity>,
+                        <TouchableOpacity onPress={handlePress} key={'setting'}>
+                            <Icon name="Settings2" size={24} />
+                        </TouchableOpacity>,
+                        <TouchableOpacity onPress={handlePress} key={'plus'}>
+                            <Icon name="Plus" size={34} />
                         </TouchableOpacity>,
                     ]}
-                    leading={<Icon name="Heart" size={24} />}
                     className="px-6"
                 />
                 {list.length > 0 ? <AnimeContainer list={list} /> : <Empty />}
@@ -158,8 +166,11 @@ const AnimeContainerItem = memo(function AnimeContainerItem({ data }: IAnimeCont
             () => {
                 router.push(`/animeDetail/${data.id}`)
             },
-            3000,
-            { edges: ['leading', 'trailing'] }
+            300,
+            {
+                leading: true,
+                trailing: false,
+            }
         )
         debounceHandle()
         return () => debounceHandle.cancel()

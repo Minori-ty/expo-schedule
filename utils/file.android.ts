@@ -2,7 +2,7 @@ import { IAnime } from '@/api/anime'
 import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system'
 
-const DIR = FileSystem.documentDirectory // 使用应用内私有目录
+export const DIR = FileSystem.documentDirectory // 使用应用内私有目录
 
 /**
  * 导出数据为json文件
@@ -52,6 +52,8 @@ export async function importJsonFile(): Promise<{ animeList: IAnime[] }> {
  */
 export async function scanJsonFile() {
     if (!DIR) return []
+    console.log(DIR)
+
     const files = await FileSystem.readDirectoryAsync(DIR)
     const jsonFiles: { name: string; size: number }[] = []
 

@@ -4,7 +4,7 @@ import { EStatus, EWeekday } from '@/enums'
 import { TTx } from '@/types'
 import { getcurrentEpisode, getLastEpisodeTimestamp, getStatus } from '@/utils/time'
 import dayjs from 'dayjs'
-import { and, eq, ne } from 'drizzle-orm'
+import { and, eq, like, ne } from 'drizzle-orm'
 import type { DeepExpand } from 'types-tools'
 
 export interface IAddAnimeData {
@@ -152,8 +152,7 @@ export async function handleGetAnimeById(id: number) {
 
 /**
  * 给创建动漫用的，根据name查找动漫
- * @param tx
- * @param id
+ * @param name
  * @returns
  */
 export async function getAnimeByName(name: string) {
@@ -162,6 +161,19 @@ export async function getAnimeByName(name: string) {
         return
     }
     return result[0]
+}
+
+/**
+ * 模糊搜索
+ * @param keyword
+ * @returns
+ */
+export async function getAnimeListByName(keyword: string) {
+    const result = await db
+        .select()
+        .from(animeTable)
+        .where(like(animeTable.name, `%${keyword}%`))
+    return result
 }
 
 /**

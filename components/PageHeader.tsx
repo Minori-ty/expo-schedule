@@ -12,15 +12,17 @@ interface IProps {
 
 function PageHeader({ title, actions, leading, className }: IProps) {
     return (
-        <View className={cn('h-12 flex-row items-center justify-between px-3', className)}>
+        <View className={cn('mb-2 h-8 flex-row items-center justify-center', className)}>
             <View className="flex-row items-center">
                 {leading}
-                <Text className="ml-2 text-2xl font-bold text-gray-900">{title}</Text>
+                <Text className="ml-2 text-2xl font-medium text-gray-900">{title}</Text>
             </View>
-            {actions &&
-                actions.map((item, index) => {
-                    return <Fragment key={index}>{item}</Fragment>
-                })}
+            <View className="absolute right-0 mr-5 flex-row items-center gap-3">
+                {actions &&
+                    actions.map((item, index) => {
+                        return <Fragment key={index}>{item}</Fragment>
+                    })}
+            </View>
         </View>
     )
 }

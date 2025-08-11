@@ -94,5 +94,17 @@
         "types-tools": "^0.0.9",
         "typescript": "~5.8.3"
     },
-    "private": true
+    "private": true,
+    "expo": {
+        "doctor": {
+            "reactNativeDirectoryCheck": {
+                "enabled": true,
+                "exclude": [
+                    "lodash-es",
+                    "eslint-config-expo"
+                ],
+                "listUnknownPackages": true
+            }
+        }
+    }
 }
