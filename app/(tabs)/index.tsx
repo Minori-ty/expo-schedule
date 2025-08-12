@@ -7,16 +7,12 @@ import { EStatus, EWeekday } from '@/enums'
 import { blurhash, themeColorPurple } from '@/styles'
 import type { TAnimeList } from '@/types'
 import {
+    getcurrentEpisode,
     getMondayTimestampInThisWeek,
     getSundayTimestampInThisWeek,
     isCurrentWeekdayUpdateTimePassed,
 } from '@/utils/time'
 import dayjs from 'dayjs'
-import customParseFormat from 'dayjs/plugin/customParseFormat'
-import isoWeek from 'dayjs/plugin/isoWeek'
-import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
-import utc from 'dayjs/plugin/utc'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { debounce } from 'es-toolkit'
 import { Image } from 'expo-image'
@@ -25,12 +21,6 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view'
-
-dayjs.extend(customParseFormat)
-dayjs.extend(isSameOrBefore)
-dayjs.extend(isoWeek)
-dayjs.extend(utc)
-dayjs.extend(isSameOrAfter)
 
 interface IScheduleContext {
     list: TAnimeList
@@ -217,10 +207,8 @@ function AnimeCardItem({ time, animeList }: IAnimeCardItemProps) {
                                 <View className="flex-1">
                                     <Text className="font-black">{item.name}</Text>
                                     <EpisodeTip
-                                        currentEpisode={item.currentEpisode}
-                                        firstEpisodeYYYYMMDDHHmm={dayjs
-                                            .unix(item.firstEpisodeTimestamp)
-                                            .format('YYYY-MM-DD HH:mm')}
+                                        firstEpisodeTimestamp={item.firstEpisodeTimestamp}
+                                        totalEpisode={item.totalEpisode}
                                     />
                                 </View>
                             </View>
@@ -233,14 +221,22 @@ function AnimeCardItem({ time, animeList }: IAnimeCardItemProps) {
 }
 
 interface IEpisodeTipProps {
-    currentEpisode: number
-    firstEpisodeYYYYMMDDHHmm: string
+    firstEpisodeTimestamp: number
+    totalEpisode: number
 }
-function EpisodeTip({ currentEpisode, firstEpisodeYYYYMMDDHHmm }: IEpisodeTipProps) {
-    if (isCurrentWeekdayUpdateTimePassed(firstEpisodeYYYYMMDDHHmm)) {
-        return <Text className="mt-3 text-sm text-[#fb7299]">更新到 第{currentEpisode}集</Text>
+function EpisodeTip({ firstEpisodeTimestamp, totalEpisode }: IEpisodeTipProps) {
+    if (isCurrentWeekdayUpdateTimePassed(dayjs.unix(firstEpisodeTimestamp).format('YYYY-MM-DD HH:mm'))) {
+        return (
+            <Text className="mt-3 text-sm text-[#fb7299]">
+                更新到 第{getcurrentEpisode({ firstEpisodeTimestamp, totalEpisode })}集
+            </Text>
+        )
     }
-    return <Text className="mt-3 text-sm text-[#9E9E9E]">即将更新 第{currentEpisode + 1}集</Text>
+    return (
+        <Text className="mt-3 text-sm text-[#9E9E9E]">
+            即将更新 第{getcurrentEpisode({ firstEpisodeTimestamp, totalEpisode }) + 1}集
+        </Text>
+    )
 }
 
 const styles = StyleSheet.create({

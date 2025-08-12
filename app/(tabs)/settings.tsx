@@ -161,7 +161,13 @@ export default function Setting() {
      */
     async function exportDataToJsonFile() {
         const data = await getAnimeList()
-        await exportJsonFile({ animeList: data }, `anime_data_${dayjs().format('YYYY_MM_DD')}.json`)
+        const res = data.map(({ eventId, ...reset }) => {
+            return {
+                ...reset,
+                eventId: null,
+            }
+        })
+        await exportJsonFile({ animeList: res }, `anime_data_${dayjs().format('YYYY_MM_DD')}.json`)
         return dayjs().format('YYYY_MM_DD')
     }
 

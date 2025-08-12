@@ -1,3 +1,10 @@
+import { getAnimeList } from '@/api/anime'
+import { db } from '@/db'
+import { animeTable } from '@/db/schema'
+import { EStatus } from '@/enums'
+import { deleteCalendarEvent } from '@/utils/calendar'
+import { getLastEpisodeTimestamp, getStatus } from '@/utils/time'
+import { eq } from 'drizzle-orm'
 import * as BackgroundTask from 'expo-background-task'
 import * as TaskManager from 'expo-task-manager'
 
@@ -9,7 +16,7 @@ export function taskDefined() {
     if (!isTaskDefined) {
         TaskManager.defineTask(BACKGROUND_TASK_NAME, async () => {
             try {
-                await refreshScheduleAndCalendar()
+                await deleteCompletedCalendars()
                 return BackgroundTask.BackgroundTaskResult.Success
             } catch {
                 return BackgroundTask.BackgroundTaskResult.Failed
@@ -32,6 +39,16 @@ export async function registerBackgroundTask() {
     })
 }
 
-export async function refreshScheduleAndCalendar() {
-    // return await Promise.all([updateScheduleTable(), updateToBeUpdatedTable()])
+export async function deleteCompletedCalendars() {
+    const list = await getAnimeList()
+    list.forEach(async item => {
+        const lastEpisodeTimestamp = getLastEpisodeTimestamp({
+            firstEpisodeTimestamp: item.firstEpisodeTimestamp,
+            totalEpisode: item.totalEpisode,
+        })
+        if (getStatus(item.firstEpisodeTimestamp, lastEpisodeTimestamp) === EStatus.completed && item.eventId) {
+            await deleteCalendarEvent(item.eventId)
+            await db.update(animeTable).set({ eventId: null }).where(eq(animeTable.id, item.id))
+        }
+    })
 }

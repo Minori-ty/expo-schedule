@@ -11,6 +11,7 @@ import { blurhash, themeColorPurple } from '@/styles'
 import { TAnimeList } from '@/types'
 import { cn } from '@/utils/cn'
 import { queryClient } from '@/utils/react-query'
+import { getcurrentEpisode, getStatus } from '@/utils/time'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
@@ -87,7 +88,6 @@ export default function MyAnime() {
         <SafeAreaView edges={['top']} className="flex-1 bg-white pt-4">
             <myAnimeContext.Provider value={{ isLoading, handleDeleteAnimeMutation }}>
                 <PageHeader
-                    // leading={<Icon name="Heart" size={24} />}
                     title="我的追番"
                     actions={[
                         <TouchableOpacity onPress={() => router.push('/search')} key={'search'}>
@@ -128,7 +128,7 @@ const AnimeContainer = memo(function AnimeContainer({ list }: IAnimeContainerPro
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ gap: GAP, paddingHorizontal: GAP }}
-            renderItem={({ item }) => <AnimeContainerItem data={item} key={timestamp} />}
+            renderItem={({ item }) => <AnimeContainerItem data={item} timestamp={timestamp} />}
             refreshControl={
                 <RefreshControl
                     refreshing={isLoading}
@@ -143,6 +143,7 @@ const AnimeContainer = memo(function AnimeContainer({ list }: IAnimeContainerPro
 
 interface IAnimeContainerItemProps {
     data: TAnimeList[number]
+    timestamp: number
 }
 const AnimeContainerItem = memo(function AnimeContainerItem({ data }: IAnimeContainerItemProps) {
     const router = useRouter()
@@ -162,6 +163,7 @@ const AnimeContainerItem = memo(function AnimeContainerItem({ data }: IAnimeCont
         debounceHandle()
         return () => debounceHandle.cancel()
     }, [data.id, router])
+
     return (
         <Pressable
             onPress={handleToAnimeDetail}
@@ -188,12 +190,19 @@ const AnimeContainerItem = memo(function AnimeContainerItem({ data }: IAnimeCont
                     cachePolicy={'memory-disk'}
                     style={styles.cover}
                 />
-                <UpdateLabel status={data.status} />
+                <UpdateLabel status={getStatus(data.firstEpisodeTimestamp, data.lastEpisodeTimestamp)} />
             </View>
             <Text numberOfLines={1} className="font-semibold">
                 {data.name}
             </Text>
-            <Text className="mt-1 text-sm text-gray-500">更新 第{data.currentEpisode}集</Text>
+            <Text className="mt-1 text-sm text-gray-500">
+                更新 第
+                {getcurrentEpisode({
+                    firstEpisodeTimestamp: data.firstEpisodeTimestamp,
+                    totalEpisode: data.totalEpisode,
+                })}
+                集
+            </Text>
         </Pressable>
     )
 })

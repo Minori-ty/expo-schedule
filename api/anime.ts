@@ -112,15 +112,8 @@ export interface IAnime {
  * @returns
  */
 export async function getAnimeList() {
-    const { refreshScheduleAndCalendar } = await import('@/backgroundTasks') // 延迟导入，避免循环引用
-    await refreshScheduleAndCalendar()
     const animeList = await db.select().from(animeTable)
-    return animeList.map(({ eventId, ...reset }) => {
-        return {
-            ...reset,
-            eventId: null,
-        }
-    })
+    return animeList
 }
 
 /**

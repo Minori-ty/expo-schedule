@@ -4,10 +4,10 @@ const config = {
     expo: {
         name: pkg.name,
         name: pkg.name,
-        version: '1.0.0',
+        version: pkg.version,
         orientation: 'portrait',
         icon: './assets/images/icon.png',
-        scheme: 'schedule',
+        scheme: pkg.name,
         userInterfaceStyle: 'automatic',
         newArchEnabled: true,
         ios: {

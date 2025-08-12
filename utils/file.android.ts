@@ -16,7 +16,7 @@ export async function exportJsonFile(data: object, filename: string) {
         filename += '.json'
     }
 
-    const path = `${RNFS.DownloadDirectoryPath}/${filename}`
+    const path = `${DIR}/${filename}`
 
     const content = JSON.stringify(data, null, 2)
     await RNFS.writeFile(path, content, {
@@ -55,7 +55,7 @@ export async function importJsonFile(): Promise<{ animeList: IAnime[] }> {
  */
 export async function scanJsonFile(): Promise<{ name: string; size: number }[]> {
     console.log('开始扫描')
-    const files = await RNFS.readDir(RNFS.DownloadDirectoryPath)
+    const files = await RNFS.readDir(DIR)
     const jsonFiles: { name: string; size: number }[] = []
 
     for (const item of files) {
