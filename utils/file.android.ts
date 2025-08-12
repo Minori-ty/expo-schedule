@@ -1,7 +1,7 @@
 import { IAnime } from '@/api/anime'
+import * as RNFS from '@dr.pogodin/react-native-fs'
 import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system'
-import * as RNFS from 'react-native-fs'
 
 export const DIR = RNFS.DownloadDirectoryPath // 使用应用内私有目录
 

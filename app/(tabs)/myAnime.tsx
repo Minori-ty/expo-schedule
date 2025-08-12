@@ -12,13 +12,14 @@ import { TAnimeList } from '@/types'
 import { cn } from '@/utils/cn'
 import { queryClient } from '@/utils/react-query'
 import { getcurrentEpisode, getStatus } from '@/utils/time'
+import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { debounce } from 'lodash-es'
-import React, { createContext, memo, useCallback, useContext, useMemo, useState } from 'react'
+import React, { createContext, memo, useCallback, useContext, useMemo, useRef, useState } from 'react'
 import {
     Dimensions,
     FlatList,
@@ -48,6 +49,7 @@ const useMyAnimeContext = () => {
 
 export default function MyAnime() {
     const router = useRouter()
+    const bottomSheetModalRef = useRef<BottomSheetModal>(null)
 
     const { data, updatedAt } = useLiveQuery(db.select().from(animeTable))
     const list = useMemo(() => {
@@ -84,6 +86,10 @@ export default function MyAnime() {
         return () => debouncePush.cancel()
     }, [router])
 
+    function handleClose() {
+        bottomSheetModalRef.current?.close()
+    }
+
     return (
         <SafeAreaView edges={['top']} className="flex-1 bg-white pt-4">
             <myAnimeContext.Provider value={{ isLoading, handleDeleteAnimeMutation }}>
@@ -93,7 +99,7 @@ export default function MyAnime() {
                         <TouchableOpacity onPress={() => router.push('/search')} key={'search'}>
                             <Icon name="Search" size={24} />
                         </TouchableOpacity>,
-                        <TouchableOpacity onPress={handlePress} key={'setting'}>
+                        <TouchableOpacity onPress={() => bottomSheetModalRef.current?.present()} key={'setting'}>
                             <Icon name="Settings2" size={24} />
                         </TouchableOpacity>,
                         <TouchableOpacity onPress={handlePress} key={'plus'}>
@@ -104,6 +110,23 @@ export default function MyAnime() {
                 />
                 {list.length > 0 ? <AnimeContainer list={list} /> : <Empty />}
             </myAnimeContext.Provider>
+
+            <BottomSheetModal
+                ref={bottomSheetModalRef}
+                enableContentPanningGesture={false}
+                // eslint-disable-next-line react/no-unstable-nested-components
+                backdropComponent={() => (
+                    <TouchableOpacity
+                        activeOpacity={1}
+                        className="absolute inset-0 bg-[#0000007f]"
+                        onPress={handleClose}
+                    />
+                )}
+            >
+                <BottomSheetView className="h-[400px] flex-1 px-[30px]">
+                    <Text>select</Text>
+                </BottomSheetView>
+            </BottomSheetModal>
         </SafeAreaView>
     )
 }
