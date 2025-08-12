@@ -6,8 +6,11 @@ import { animeTable } from '@/db/schema'
 import { EStatus, EWeekday } from '@/enums'
 import { blurhash, themeColorPurple } from '@/styles'
 import type { TAnimeList } from '@/types'
-import { queryClient } from '@/utils/react-query'
-import { getMondayTimestampInThisWeek, isCurrentWeekdayUpdateTimePassed } from '@/utils/time'
+import {
+    getMondayTimestampInThisWeek,
+    getSundayTimestampInThisWeek,
+    isCurrentWeekdayUpdateTimePassed,
+} from '@/utils/time'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import isoWeek from 'dayjs/plugin/isoWeek'
@@ -31,6 +34,7 @@ dayjs.extend(isSameOrAfter)
 
 interface IScheduleContext {
     list: TAnimeList
+    isLoading: boolean
 }
 
 const scheduleContext = createContext<IScheduleContext | null>(null)
@@ -71,6 +75,9 @@ export default function Index() {
                 if (item.status === EStatus.completed) {
                     return item.lastEpisodeTimestamp > getMondayTimestampInThisWeek()
                 }
+                if (item.status === EStatus.toBeUpdated) {
+                    return item.firstEpisodeTimestamp < getSundayTimestampInThisWeek()
+                }
                 return false
             })
     }, [data])
@@ -81,7 +88,7 @@ export default function Index() {
 
     return (
         <SafeAreaView edges={['top']} className="flex-1 bg-white">
-            <scheduleContext.Provider value={{ list }}>
+            <scheduleContext.Provider value={{ list, isLoading }}>
                 <TabView
                     navigationState={{ index, routes }}
                     renderScene={renderScene}
@@ -104,19 +111,18 @@ export default function Index() {
 }
 
 function TabViewComponent({ updateWeekday }: { updateWeekday: typeof EWeekday.valueType }) {
-    const { list } = useSchedule()
+    const { list, isLoading } = useSchedule()
+    const [timestamp, setTimestamp] = useState(dayjs().unix())
     const animeList = list.filter(item => dayjs.unix(item.firstEpisodeTimestamp).isoWeekday() === updateWeekday)
-    const queryState = queryClient.getQueryState(['my-anime'])
 
-    const isLoading = queryState?.fetchStatus === 'fetching'
     function refetch() {
-        queryClient.invalidateQueries({ queryKey: ['schedule'] })
-        queryClient.invalidateQueries({ queryKey: ['update-anime-currentEpisode'] })
+        setTimestamp(dayjs().unix())
     }
     if (animeList.length === 0) {
         return (
             <ScrollView
                 contentContainerStyle={styles.center}
+                key={timestamp}
                 refreshControl={
                     <RefreshControl
                         refreshing={isLoading}

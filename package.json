@@ -61,6 +61,7 @@
         "react-hook-form": "^7.62.0",
         "react-native": "0.79.5",
         "react-native-error-boundary": "^2.0.0",
+        "react-native-fs": "^2.20.0",
         "react-native-gesture-handler": "~2.24.0",
         "react-native-keyboard-controller": "^1.18.2",
         "react-native-pager-view": "6.7.1",

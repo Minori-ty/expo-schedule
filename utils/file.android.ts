@@ -1,8 +1,9 @@
 import { IAnime } from '@/api/anime'
 import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system'
+import * as RNFS from 'react-native-fs'
 
-export const DIR = FileSystem.documentDirectory // 使用应用内私有目录
+export const DIR = RNFS.DownloadDirectoryPath // 使用应用内私有目录
 
 /**
  * 导出数据为json文件
@@ -15,11 +16,13 @@ export async function exportJsonFile(data: object, filename: string) {
         filename += '.json'
     }
 
-    const path = `${DIR}${filename}`
+    const path = `${RNFS.DownloadDirectoryPath}/${filename}`
+
     const content = JSON.stringify(data, null, 2)
-    await FileSystem.writeAsStringAsync(path, content, {
+    await RNFS.writeFile(path, content, {
         encoding: FileSystem.EncodingType.UTF8,
     })
+
     return true
 }
 
@@ -50,22 +53,17 @@ export async function importJsonFile(): Promise<{ animeList: IAnime[] }> {
  * 扫描应用私有目录中的json文件
  * @returns
  */
-export async function scanJsonFile() {
-    if (!DIR) return []
-    console.log(DIR)
-
-    const files = await FileSystem.readDirectoryAsync(DIR)
+export async function scanJsonFile(): Promise<{ name: string; size: number }[]> {
+    console.log('开始扫描')
+    const files = await RNFS.readDir(RNFS.DownloadDirectoryPath)
     const jsonFiles: { name: string; size: number }[] = []
 
-    for (const fileName of files) {
-        if (fileName.endsWith('.json')) {
-            const info = await FileSystem.getInfoAsync(`${DIR}${fileName}`)
-            if (info.exists) {
-                jsonFiles.push({
-                    name: fileName,
-                    size: info.size ?? 0,
-                })
-            }
+    for (const item of files) {
+        if (item.name.endsWith('.json')) {
+            jsonFiles.push({
+                name: item.name,
+                size: item.size,
+            })
         }
     }
 
@@ -82,13 +80,8 @@ export async function deleteJsonFile(fileName: string): Promise<boolean> {
         fileName += '.json'
     }
 
-    const path = `${DIR}${fileName}`
-    const info = await FileSystem.getInfoAsync(path)
-    if (!info.exists) {
-        console.warn('文件不存在:', path)
-        return false
-    }
+    const path = `${DIR}/${fileName}`
+    await RNFS.unlink(path)
 
-    await FileSystem.deleteAsync(path)
     return true
 }

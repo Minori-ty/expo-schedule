@@ -43,13 +43,13 @@ export default function Setting() {
     type TData = (typeof data)[number]
     type TEventId = DeepExpand<Omit<TData, 'eventId'> & { eventId: string }>
 
-    function hasEventId(item: TData): item is TEventId {
+    const hasEventId = useCallback((item: TData): item is TEventId => {
         return item.eventId !== null
-    }
+    }, [])
 
     const calendarList = useMemo(() => {
         return data.filter(hasEventId)
-    }, [data])
+    }, [data, hasEventId])
 
     const isLoading = useMemo(() => {
         return !updatedAt
@@ -58,7 +58,6 @@ export default function Setting() {
     const { data: fileList = [] } = useQuery({
         queryKey: ['settings-json-file'],
         queryFn: scanJsonFile,
-        refetchOnWindowFocus: true,
     })
     const { mutate: handleClearCalendarByAnimeIdMution } = useMutation({
         mutationFn: deleteCalendarByAnimeId,
@@ -71,10 +70,12 @@ export default function Setting() {
             })
         },
         onError: err => {
-            Toast.show({
-                type: 'error',
-                text1: `获取日历事件失败 ${err}`,
-            })
+            console.log('扫描失败', err)
+
+            // Toast.show({
+            //     type: 'error',
+            //     text1: `获取日历事件失败 ${err}`,
+            // })
         },
     })
 
@@ -177,6 +178,8 @@ export default function Setting() {
             })
         },
         onError: err => {
+            console.log(err)
+
             Toast.show({
                 type: 'error',
                 text1: '导入失败！' + err,
@@ -226,9 +229,6 @@ export default function Setting() {
             mutationFn: handleImportJsonFileToData,
             onSuccess: () => {
                 queryClient.invalidateQueries({
-                    queryKey: ['my-anime'],
-                })
-                queryClient.invalidateQueries({
                     queryKey: ['schedule'],
                 })
                 queryClient.invalidateQueries({
@@ -251,9 +251,6 @@ export default function Setting() {
         mutationFn: deleteJsonFile,
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ['my-anime'],
-            })
-            queryClient.invalidateQueries({
                 queryKey: ['schedule'],
             })
             queryClient.invalidateQueries({
@@ -272,12 +269,6 @@ export default function Setting() {
     const { mutate: deleteJsonFileListMution } = useMutation({
         mutationFn: deleteJsonFileList,
         onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ['my-anime'],
-            })
-            queryClient.invalidateQueries({
-                queryKey: ['schedule'],
-            })
             queryClient.invalidateQueries({
                 queryKey: ['settings-calendar'],
             })
@@ -319,7 +310,11 @@ export default function Setting() {
         }
     }
 
-    function refetch() {}
+    function refetch() {
+        queryClient.invalidateQueries({
+            queryKey: ['settings-json-file'],
+        })
+    }
     return (
         <>
             <SafeAreaView edges={['top']} className="flex-1 bg-gray-50">

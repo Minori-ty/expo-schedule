@@ -258,12 +258,7 @@ function AnimeDetail() {
         queryClient.invalidateQueries({
             queryKey: ['anime-detail', id],
         })
-        queryClient.invalidateQueries({
-            queryKey: ['my-anime'],
-        })
-        queryClient.invalidateQueries({
-            queryKey: ['schedule'],
-        })
+
         queryClient.invalidateQueries({ queryKey: ['update-anime-currentEpisode'] })
     }
 

@@ -12,11 +12,12 @@ import { TAnimeList } from '@/types'
 import { cn } from '@/utils/cn'
 import { queryClient } from '@/utils/react-query'
 import { useMutation } from '@tanstack/react-query'
+import dayjs from 'dayjs'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { debounce } from 'lodash-es'
-import React, { createContext, memo, useCallback, useContext, useMemo } from 'react'
+import React, { createContext, memo, useCallback, useContext, useMemo, useState } from 'react'
 import {
     Dimensions,
     FlatList,
@@ -34,7 +35,6 @@ const GAP = 10
 
 interface IMyAnimeContext {
     isLoading: boolean
-    onRefetch: () => void
     handleDeleteAnimeMutation: (id: number) => void
 }
 const myAnimeContext = createContext<IMyAnimeContext | null>(null)
@@ -48,11 +48,6 @@ const useMyAnimeContext = () => {
 export default function MyAnime() {
     const router = useRouter()
 
-    // const { data: list = [], isLoading } = useQuery({
-    //     queryKey: ['my-anime'],
-    //     queryFn: getAnimeList,
-    // })
-
     const { data, updatedAt } = useLiveQuery(db.select().from(animeTable))
     const list = useMemo(() => {
         return data.map(item => parseAnimeData(item))
@@ -62,25 +57,11 @@ export default function MyAnime() {
         return !updatedAt
     }, [updatedAt])
 
-    const onRefetch = useCallback(() => {
-        queryClient.invalidateQueries({ queryKey: ['update-anime-currentEpisode'] })
-        // queryClient.invalidateQueries({ queryKey: ['my-anime'] })
-    }, [])
-
     const { mutate: handleDeleteAnimeMutation } = useMutation({
         mutationFn: handleDeleteAnime,
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: ['search'],
-            })
-            queryClient.invalidateQueries({
-                queryKey: ['my-anime'],
-            })
-            queryClient.invalidateQueries({
-                queryKey: ['schedule'],
-            })
-            queryClient.invalidateQueries({
-                queryKey: ['settings-calendar'],
             })
         },
     })
@@ -104,7 +85,7 @@ export default function MyAnime() {
 
     return (
         <SafeAreaView edges={['top']} className="flex-1 bg-white pt-4">
-            <myAnimeContext.Provider value={{ isLoading, onRefetch, handleDeleteAnimeMutation }}>
+            <myAnimeContext.Provider value={{ isLoading, handleDeleteAnimeMutation }}>
                 <PageHeader
                     // leading={<Icon name="Heart" size={24} />}
                     title="我的追番"
@@ -131,7 +112,13 @@ interface IAnimeContainerProps {
     list: TAnimeList
 }
 const AnimeContainer = memo(function AnimeContainer({ list }: IAnimeContainerProps) {
-    const { isLoading, onRefetch } = useMyAnimeContext()
+    const { isLoading } = useMyAnimeContext()
+    const [timestamp, setTimestamp] = useState(dayjs().unix())
+
+    function onRefetch() {
+        console.log(dayjs().unix())
+        setTimestamp(dayjs().unix())
+    }
     return (
         <FlatList
             data={list}
@@ -141,7 +128,7 @@ const AnimeContainer = memo(function AnimeContainer({ list }: IAnimeContainerPro
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ gap: GAP, paddingHorizontal: GAP }}
-            renderItem={({ item }) => <AnimeContainerItem data={item} />}
+            renderItem={({ item }) => <AnimeContainerItem data={item} key={timestamp} />}
             refreshControl={
                 <RefreshControl
                     refreshing={isLoading}
@@ -212,15 +199,15 @@ const AnimeContainerItem = memo(function AnimeContainerItem({ data }: IAnimeCont
 })
 
 function Empty() {
-    const queryState = queryClient.getQueryState(['my-anime'])
-
-    const isLoading = queryState?.fetchStatus === 'fetching'
+    const { isLoading } = useMyAnimeContext()
+    const [timestamp, setTimestamp] = useState(dayjs().unix())
     function refetch() {
-        queryClient.invalidateQueries({ queryKey: ['my-anime'] })
+        setTimestamp(dayjs().unix())
     }
     return (
         <ScrollView
             contentContainerStyle={styles.center}
+            key={timestamp}
             refreshControl={
                 <RefreshControl
                     refreshing={isLoading}
