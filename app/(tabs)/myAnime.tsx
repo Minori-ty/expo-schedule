@@ -14,6 +14,7 @@ import { queryClient } from '@/utils/react-query'
 import { getcurrentEpisode, getStatus } from '@/utils/time'
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
 import { useMutation } from '@tanstack/react-query'
+import { type ClassValue } from 'clsx'
 import dayjs from 'dayjs'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { Enum } from 'enum-plus'
@@ -86,6 +87,7 @@ export default function MyAnime() {
     const bottomSheetModalRef = useRef<BottomSheetModal>(null)
     const [status, setStatus] = useState<typeof EStatusList.valueType>(EStatusList.all)
     const [sort, setSort] = useState<typeof ESortList.valueType>(ESortList.positive)
+
     const { data, updatedAt } = useLiveQuery(db.select().from(animeTable))
     const list = useMemo(() => {
         return data
@@ -174,39 +176,15 @@ export default function MyAnime() {
             >
                 <BottomSheetView className="h-[400px] flex-1 bg-gray-100 px-5 pt-5">
                     <Text className="my-2 pl-4 text-sm font-medium text-gray-500">筛选状态</Text>
-                    <View className="rounded-2xl bg-white px-4">
+                    <View className="overflow-hidden rounded-2xl bg-white">
                         {EStatusList.items.map(item => {
-                            return (
-                                <TouchableOpacity
-                                    className="flex-row items-center justify-between py-3"
-                                    key={item.key}
-                                    onPress={() => setStatus(item.value)}
-                                    activeOpacity={1}
-                                >
-                                    <Text className={cn('text-lg', status === item.value && 'text-blue-500')}>
-                                        {item.label}
-                                    </Text>
-                                    {status === item.value && <Icon name="Check" size={14} className="text-blue-500" />}
-                                </TouchableOpacity>
-                            )
+                            return <SelectItem item={item} status={status} setStatus={setStatus} key={item.key} />
                         })}
                     </View>
                     <Text className="my-2 pl-4 text-sm font-medium text-gray-500">排序</Text>
-                    <View className="rounded-2xl bg-white px-3">
+                    <View className="overflow-hidden rounded-2xl bg-white">
                         {ESortList.items.map(item => {
-                            return (
-                                <TouchableOpacity
-                                    className="flex-row items-center justify-between py-3"
-                                    key={item.key}
-                                    onPress={() => setSort(item.value)}
-                                    activeOpacity={1}
-                                >
-                                    <Text className={cn('text-lg', sort === item.value && 'text-blue-500')}>
-                                        {item.label}
-                                    </Text>
-                                    {sort === item.value && <Icon name="Check" size={14} className="text-blue-500" />}
-                                </TouchableOpacity>
-                            )
+                            return <SortItem item={item} sort={sort} setSort={setSort} key={item.key} />
                         })}
                     </View>
                 </BottomSheetView>
@@ -363,3 +341,52 @@ const styles = StyleSheet.create({
         flex: 1,
     },
 })
+
+interface ISelectItem {
+    item: (typeof EStatusList.items)[number]
+    status: typeof EStatusList.valueType
+    setStatus: React.Dispatch<React.SetStateAction<typeof EStatusList.valueType>>
+}
+
+function SelectItem({ item, status, setStatus }: ISelectItem) {
+    const [bgColor, setBgColor] = useState<ClassValue>('bg-white')
+    return (
+        <TouchableOpacity
+            className={cn('flex-row items-center justify-between px-4 py-3', bgColor)}
+            key={item.key}
+            onPress={() => setStatus(item.value)}
+            activeOpacity={1}
+            onPressIn={e => {
+                setBgColor('bg-gray-300')
+            }}
+            onPressOut={e => setBgColor('bg-white')}
+        >
+            <Text className={cn('text-lg', status === item.value && 'text-blue-500')}>{item.label}</Text>
+            {status === item.value && <Icon name="Check" size={22} className="text-blue-500" />}
+        </TouchableOpacity>
+    )
+}
+
+interface ISortItem {
+    item: (typeof ESortList.items)[number]
+    sort: typeof ESortList.valueType
+    setSort: React.Dispatch<React.SetStateAction<typeof ESortList.valueType>>
+}
+function SortItem({ item, sort, setSort }: ISortItem) {
+    const [bgColor, setBgColor] = useState<ClassValue>('bg-white')
+    return (
+        <TouchableOpacity
+            className={cn('flex-row items-center justify-between px-4 py-3', bgColor)}
+            key={item.key}
+            onPress={() => setSort(item.value)}
+            activeOpacity={1}
+            onPressIn={e => {
+                setBgColor('bg-gray-300')
+            }}
+            onPressOut={e => setBgColor('bg-white')}
+        >
+            <Text className={cn('text-lg', sort === item.value && 'text-blue-500')}>{item.label}</Text>
+            {sort === item.value && <Icon name="Check" size={22} className="text-blue-500" />}
+        </TouchableOpacity>
+    )
+}
