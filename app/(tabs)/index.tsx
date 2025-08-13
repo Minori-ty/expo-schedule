@@ -210,6 +210,9 @@ function AnimeCardItem({ time, animeList }: IAnimeCardItemProps) {
                                         firstEpisodeTimestamp={item.firstEpisodeTimestamp}
                                         totalEpisode={item.totalEpisode}
                                     />
+                                    {item.status === EStatus.completed && (
+                                        <Text className="mt-2 text-sm text-[#fb7299]">已完结🎉</Text>
+                                    )}
                                 </View>
                             </View>
                         </TouchableOpacity>

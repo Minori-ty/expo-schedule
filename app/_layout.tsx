@@ -1,4 +1,4 @@
-import { registerBackgroundTask, taskDefined } from '@/backgroundTasks'
+import { deleteCompletedCalendars, registerBackgroundTask, taskDefined } from '@/backgroundTasks'
 import Error from '@/components/lottie/Error'
 import Loading from '@/components/lottie/Loading'
 import Modal from '@/components/Modal/Modal'
@@ -31,7 +31,9 @@ export default function RootLayout() {
     })
     useDrizzleStudio(expo)
 
-    useEffect(() => {}, [])
+    useEffect(() => {
+        deleteCompletedCalendars()
+    }, [])
 
     startTransition(() => {
         getCalendarPermission()
