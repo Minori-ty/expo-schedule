@@ -7,7 +7,14 @@ import PageHeader from '@/components/PageHeader'
 import { db } from '@/db'
 import { animeTable } from '@/db/schema'
 import { themeColorPurple } from '@/styles'
-import { deleteJsonFile, DIR, exportJsonFile, importJsonFile, scanJsonFile } from '@/utils/file.android'
+import {
+    deleteJsonFile,
+    deleteJsonFileList,
+    DIR,
+    exportJsonFile,
+    importJsonFile,
+    scanJsonFile,
+} from '@/utils/file.android'
 import { queryClient } from '@/utils/react-query'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
@@ -61,13 +68,17 @@ export default function Setting() {
     })
     const { mutate: handleClearCalendarByAnimeIdMution } = useMutation({
         mutationFn: deleteCalendarByAnimeId,
-        onSuccess: () => {
+        onSuccess: (_, id) => {
             queryClient.invalidateQueries({
                 queryKey: ['anime-calendar'],
             })
             queryClient.invalidateQueries({
                 queryKey: ['settings-calendar'],
             })
+            const index = selectedAnimeIdList.indexOf(id)
+            if (index !== -1) {
+                selectedAnimeIdList.splice(index, 1)
+            }
         },
         onError: err => {
             console.log('扫描失败', err)
@@ -246,16 +257,16 @@ export default function Setting() {
                 })
             },
             onError: err => {
-                // Toast.show({
-                //     type: 'error',
-                //     text1: err.message,
-                // })
+                Toast.show({
+                    type: 'error',
+                    text1: err.message,
+                })
             },
         })
 
     const { mutate: deleteJsonFileMution } = useMutation({
         mutationFn: deleteJsonFile,
-        onSuccess: () => {
+        onSuccess: (_, fileName) => {
             queryClient.invalidateQueries({
                 queryKey: ['schedule'],
             })
@@ -265,13 +276,20 @@ export default function Setting() {
             queryClient.invalidateQueries({
                 queryKey: ['settings-json-file'],
             })
+
+            const index = selectedJsonFileList.indexOf(fileName)
+            if (index !== -1) {
+                selectedAnimeIdList.splice(index, 1)
+            }
         },
-        onError: err => {},
+        onError: err => {
+            Toast.show({
+                type: 'error',
+                text1: err.message,
+            })
+        },
     })
 
-    async function deleteJsonFileList(fileNameList: string[]) {
-        return await Promise.all(fileNameList.map(deleteJsonFile))
-    }
     const { mutate: deleteJsonFileListMution } = useMutation({
         mutationFn: deleteJsonFileList,
         onSuccess: () => {
@@ -284,7 +302,12 @@ export default function Setting() {
             setSelectedJsonFileList([])
             Modal.hide()
         },
-        onError: err => {},
+        onError: err => {
+            Toast.show({
+                type: 'error',
+                text1: err.message,
+            })
+        },
     })
 
     const formatFileSize = (bytes: number) => {

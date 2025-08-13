@@ -85,3 +85,12 @@ export async function deleteJsonFile(fileName: string): Promise<boolean> {
 
     return true
 }
+
+/**
+ * 批量删除json文件
+ * @param fileNameList
+ * @returns
+ */
+export async function deleteJsonFileList(fileNameList: string[]) {
+    return await Promise.all(fileNameList.map(deleteJsonFile))
+}

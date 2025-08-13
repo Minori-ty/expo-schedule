@@ -189,34 +189,31 @@ function AnimeCardItem({ time, animeList }: IAnimeCardItemProps) {
             <View className="w-16 items-center justify-start">
                 <Text className="font-medium">{time}</Text>
             </View>
-            <View className="flex-1">
+            <View>
                 {animeList.map(item => {
                     return (
                         <TouchableOpacity
                             key={item.id}
                             activeOpacity={0.5}
                             onPress={() => handleToAnimeDetail(item.id)}
+                            className="mb-3 h-28 flex-1 flex-row"
                         >
-                            <View className="mb-3 h-28 flex-1 flex-row">
-                                <Image
-                                    source={item.cover}
-                                    placeholder={{ blurhash }}
-                                    contentFit="cover"
-                                    transition={500}
-                                    cachePolicy={'memory-disk'}
-                                    style={styles.cover}
+                            <Image
+                                source={item.cover}
+                                placeholder={{ blurhash }}
+                                contentFit="cover"
+                                transition={500}
+                                cachePolicy={'memory-disk'}
+                                style={styles.cover}
+                            />
+                            <View className="flex-1">
+                                <Text className="font-black">{item.name}</Text>
+                                <EpisodeTip
+                                    firstEpisodeTimestamp={item.firstEpisodeTimestamp}
+                                    totalEpisode={item.totalEpisode}
                                 />
-                                <View className="flex-1">
-                                    <Text className="font-black">{item.name}</Text>
-                                    <EpisodeTip
-                                        firstEpisodeTimestamp={item.firstEpisodeTimestamp}
-                                        totalEpisode={item.totalEpisode}
-                                    />
-                                    {getStatus(item.firstEpisodeTimestamp, item.lastEpisodeTimestamp) ===
-                                        EStatus.completed && (
-                                        <Text className="mt-2 text-sm text-[#fb7299]">已完结🎉</Text>
-                                    )}
-                                </View>
+                                {getStatus(item.firstEpisodeTimestamp, item.lastEpisodeTimestamp) ===
+                                    EStatus.completed && <Text className="mt-2 text-sm text-[#fb7299]">已完结🎉</Text>}
                             </View>
                         </TouchableOpacity>
                     )
