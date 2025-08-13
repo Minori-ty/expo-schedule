@@ -34,9 +34,13 @@ export default function Search() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Icon name="ArrowLeft" />
                 </TouchableOpacity>
-                <View className="h-10 flex-1 flex-row items-center rounded-3xl border border-gray-400 pl-2">
+                <View className="flex-1 flex-row items-center rounded-3xl border border-[#ccc] pl-2">
                     <Icon name="Search" size={20} />
-                    <TextInput className="m-0 h-14 flex-1 p-0 pl-2" onChangeText={setKeyword} onEndEditing={search} />
+                    <TextInput
+                        className="h-10 flex-1 p-0 pl-2 pt-1 text-start text-base leading-7"
+                        onChangeText={setKeyword}
+                        onEndEditing={search}
+                    />
                 </View>
                 <TouchableOpacity onPress={search}>
                     <Text>搜索</Text>

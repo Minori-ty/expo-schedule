@@ -30,8 +30,8 @@ import DateTimePicker, {
 } from 'react-native-ui-datepicker'
 
 interface IAnimeDetailContext {
-    firstEpisodeYYYYMMDDHHmm: string
-    currentEpisode: number
+    firstEpisodeTimestamp: number
+    lastEpisodeTimestamp: number
     totalEpisode: number
 }
 const animeDetailContext = createContext<IAnimeDetailContext | null>(null)
@@ -279,8 +279,8 @@ function AnimeDetail() {
             >
                 <animeDetailContext.Provider
                     value={{
-                        firstEpisodeYYYYMMDDHHmm: dayjs.unix(anime.firstEpisodeTimestamp).format('YYYY-MM-DD HH:mm'),
-                        currentEpisode: anime.currentEpisode,
+                        firstEpisodeTimestamp: anime.firstEpisodeTimestamp,
+                        lastEpisodeTimestamp: anime.lastEpisodeTimestamp,
                         totalEpisode: anime.totalEpisode,
                     }}
                 >
@@ -301,11 +301,22 @@ function AnimeDetail() {
                                 <View
                                     className={cn(
                                         `absolute -right-2 -top-2 rounded-full px-2 py-1`,
-                                        mapColor[anime.status].bgColor
+                                        mapColor[getStatus(anime.firstEpisodeTimestamp, anime.lastEpisodeTimestamp)]
+                                            .bgColor
                                     )}
                                 >
-                                    <Text className={cn(`text-xs font-medium`, mapColor[anime.status].textColor)}>
-                                        {EStatus.raw(anime.status).label}
+                                    <Text
+                                        className={cn(
+                                            `text-xs font-medium`,
+                                            mapColor[getStatus(anime.firstEpisodeTimestamp, anime.lastEpisodeTimestamp)]
+                                                .textColor
+                                        )}
+                                    >
+                                        {
+                                            EStatus.raw(
+                                                getStatus(anime.firstEpisodeTimestamp, anime.lastEpisodeTimestamp)
+                                            ).label
+                                        }
                                     </Text>
                                 </View>
                             </View>
@@ -472,11 +483,19 @@ export default AnimeDetail
 
 function Day(day: CalendarDay) {
     const { isSelected, isCurrentMonth, isToday } = day
-    const { totalEpisode, firstEpisodeYYYYMMDDHHmm, currentEpisode } = useAnimeDetailContext()
+    const { totalEpisode, firstEpisodeTimestamp } = useAnimeDetailContext()
 
     const episode = useMemo(() => {
-        return checkEpisodeUpdate({ date: day.date, totalEpisode, firstEpisodeYYYYMMDDHHmm, currentEpisode })
-    }, [day.date, totalEpisode, firstEpisodeYYYYMMDDHHmm, currentEpisode])
+        return checkEpisodeUpdate({
+            date: day.date,
+            totalEpisode,
+            firstEpisodeYYYYMMDDHHmm: dayjs.unix(firstEpisodeTimestamp).format('YYYY-MM-DD HH:mm'),
+            currentEpisode: getcurrentEpisode({
+                firstEpisodeTimestamp,
+                totalEpisode,
+            }),
+        })
+    }, [day.date, totalEpisode, firstEpisodeTimestamp])
 
     return (
         <View

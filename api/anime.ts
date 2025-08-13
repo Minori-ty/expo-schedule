@@ -1,8 +1,8 @@
 import { db } from '@/db'
 import { animeTable } from '@/db/schema'
-import { EStatus, EWeekday } from '@/enums'
+import { EWeekday } from '@/enums'
 import { TTx } from '@/types'
-import { getcurrentEpisode, getLastEpisodeTimestamp, getStatus } from '@/utils/time'
+import { getLastEpisodeTimestamp } from '@/utils/time'
 import dayjs from 'dayjs'
 import { and, eq, like, ne } from 'drizzle-orm'
 import type { DeepExpand } from 'types-tools'
@@ -96,13 +96,11 @@ export async function updateAnimeById(tx: TTx, data: DeepExpand<IUpdateAnimeByAn
 export interface IAnime {
     id: number
     name: string
-    currentEpisode: number
     totalEpisode: number
     cover: string
     updateWeekday: typeof EWeekday.valueType
     firstEpisodeTimestamp: number
     lastEpisodeTimestamp: number
-    status: typeof EStatus.valueType
     updateTimeHHmm: string
     eventId: string | null
 }
@@ -206,22 +204,14 @@ export function parseAnimeData(data: IParseAnimeData): DeepExpand<IAnime> {
     const firstEpisodeYYYYMMDDHHmm = dayjs.unix(firstEpisodeTimestamp).format('YYYY-MM-DD HH:mm')
     const lastEpisodeTimestamp = getLastEpisodeTimestamp({ firstEpisodeTimestamp, totalEpisode })
 
-    const status = getStatus(firstEpisodeTimestamp, lastEpisodeTimestamp)
-    const currentEpisode = getcurrentEpisode({
-        firstEpisodeTimestamp,
-        totalEpisode,
-    })
-
     return {
         id,
         name,
-        currentEpisode,
         totalEpisode,
         cover,
         updateWeekday,
         firstEpisodeTimestamp,
         lastEpisodeTimestamp,
-        status,
         updateTimeHHmm: firstEpisodeYYYYMMDDHHmm,
         eventId,
     }

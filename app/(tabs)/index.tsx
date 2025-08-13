@@ -9,6 +9,7 @@ import type { TAnimeList } from '@/types'
 import {
     getcurrentEpisode,
     getMondayTimestampInThisWeek,
+    getStatus,
     getSundayTimestampInThisWeek,
     isCurrentWeekdayUpdateTimePassed,
 } from '@/utils/time'
@@ -59,13 +60,14 @@ export default function Index() {
         return data
             .map(item => parseAnimeData(item))
             .filter(item => {
-                if (item.status === EStatus.serializing) {
+                const status = getStatus(item.firstEpisodeTimestamp, item.lastEpisodeTimestamp)
+                if (status === EStatus.serializing) {
                     return true
                 }
-                if (item.status === EStatus.completed) {
+                if (status === EStatus.completed) {
                     return item.lastEpisodeTimestamp > getMondayTimestampInThisWeek()
                 }
-                if (item.status === EStatus.toBeUpdated) {
+                if (status === EStatus.toBeUpdated) {
                     return item.firstEpisodeTimestamp < getSundayTimestampInThisWeek()
                 }
                 return false
@@ -210,7 +212,8 @@ function AnimeCardItem({ time, animeList }: IAnimeCardItemProps) {
                                         firstEpisodeTimestamp={item.firstEpisodeTimestamp}
                                         totalEpisode={item.totalEpisode}
                                     />
-                                    {item.status === EStatus.completed && (
+                                    {getStatus(item.firstEpisodeTimestamp, item.lastEpisodeTimestamp) ===
+                                        EStatus.completed && (
                                         <Text className="mt-2 text-sm text-[#fb7299]">已完结🎉</Text>
                                     )}
                                 </View>

@@ -7,7 +7,7 @@ import { db } from '@/db'
 import { animeTable } from '@/db/schema'
 import { EStatus } from '@/enums'
 import { queryClient } from '@/utils/react-query'
-import { getFirstEpisodeTimestamp, getLastEpisodeTimestamp } from '@/utils/time'
+import { getcurrentEpisode, getFirstEpisodeTimestamp, getLastEpisodeTimestamp, getStatus } from '@/utils/time'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { eq } from 'drizzle-orm'
@@ -51,13 +51,18 @@ export default function EditAnime() {
             .unix(getLastEpisodeTimestamp({ firstEpisodeTimestamp, totalEpisode }))
             .format('YYYY-MM-DD HH:mm')
 
-        const status = result.status
+        const status = getStatus(result.firstEpisodeTimestamp, result.lastEpisodeTimestamp)
+        const currentEpisode = getcurrentEpisode({
+            firstEpisodeTimestamp,
+            totalEpisode,
+        })
         if (status === EStatus.toBeUpdated) {
             return {
                 ...reset,
                 status,
                 totalEpisode,
                 firstEpisodeYYYYMMDDHHmm,
+                currentEpisode,
             }
         } else if (status === EStatus.completed) {
             return {
@@ -65,9 +70,10 @@ export default function EditAnime() {
                 status,
                 totalEpisode,
                 lastEpisodeYYYYMMDDHHmm,
+                currentEpisode,
             }
         } else {
-            return { ...reset, status, totalEpisode }
+            return { ...reset, status, totalEpisode, currentEpisode }
         }
     }, [data])
 

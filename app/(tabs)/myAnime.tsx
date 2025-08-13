@@ -94,7 +94,7 @@ export default function MyAnime() {
                 if (status === EStatusList.all) {
                     return true
                 }
-                return item.status === status
+                return getStatus(item.firstEpisodeTimestamp, item.lastEpisodeTimestamp) === status
             })
             .sort((a, b) => {
                 if (sort === ESortList.positive) {
