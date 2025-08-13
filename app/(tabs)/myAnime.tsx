@@ -16,6 +16,7 @@ import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
+import { Enum } from 'enum-plus'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { debounce } from 'lodash-es'
@@ -47,14 +48,62 @@ const useMyAnimeContext = () => {
     return ctx
 }
 
+const EStatusList = Enum({
+    all: {
+        value: 0,
+        label: '全部',
+    },
+    /** 已完结 */
+    completed: {
+        value: 1,
+        label: '已完结',
+    },
+    /** 连载中 */
+    serializing: {
+        value: 2,
+        label: '连载中',
+    },
+    /** 即将更新 */
+    toBeUpdated: {
+        value: 3,
+        label: '即将更新',
+    },
+})
+
+const ESortList = Enum({
+    positive: {
+        value: 1,
+        label: '正序',
+    },
+    reverse: {
+        value: 2,
+        label: '倒序',
+    },
+})
+
 export default function MyAnime() {
     const router = useRouter()
     const bottomSheetModalRef = useRef<BottomSheetModal>(null)
-
+    const [status, setStatus] = useState<typeof EStatusList.valueType>(EStatusList.all)
+    const [sort, setSort] = useState<typeof ESortList.valueType>(ESortList.positive)
     const { data, updatedAt } = useLiveQuery(db.select().from(animeTable))
     const list = useMemo(() => {
-        return data.map(item => parseAnimeData(item))
-    }, [data])
+        return data
+            .map(item => parseAnimeData(item))
+            .filter(item => {
+                if (status === EStatusList.all) {
+                    return true
+                }
+                return item.status === status
+            })
+            .sort((a, b) => {
+                if (sort === ESortList.positive) {
+                    return a.firstEpisodeTimestamp - b.firstEpisodeTimestamp
+                } else {
+                    return b.firstEpisodeTimestamp - a.firstEpisodeTimestamp
+                }
+            })
+    }, [data, status, sort])
 
     const isLoading = useMemo(() => {
         return !updatedAt
@@ -123,8 +172,43 @@ export default function MyAnime() {
                     />
                 )}
             >
-                <BottomSheetView className="h-[400px] flex-1 px-[30px]">
-                    <Text>select</Text>
+                <BottomSheetView className="h-[400px] flex-1 bg-gray-100 px-5 pt-5">
+                    <Text className="my-2 pl-4 text-sm font-medium text-gray-500">筛选状态</Text>
+                    <View className="rounded-2xl bg-white px-4">
+                        {EStatusList.items.map(item => {
+                            return (
+                                <TouchableOpacity
+                                    className="flex-row items-center justify-between py-3"
+                                    key={item.key}
+                                    onPress={() => setStatus(item.value)}
+                                    activeOpacity={1}
+                                >
+                                    <Text className={cn('text-lg', status === item.value && 'text-blue-500')}>
+                                        {item.label}
+                                    </Text>
+                                    {status === item.value && <Icon name="Check" size={14} className="text-blue-500" />}
+                                </TouchableOpacity>
+                            )
+                        })}
+                    </View>
+                    <Text className="my-2 pl-4 text-sm font-medium text-gray-500">排序</Text>
+                    <View className="rounded-2xl bg-white px-3">
+                        {ESortList.items.map(item => {
+                            return (
+                                <TouchableOpacity
+                                    className="flex-row items-center justify-between py-3"
+                                    key={item.key}
+                                    onPress={() => setSort(item.value)}
+                                    activeOpacity={1}
+                                >
+                                    <Text className={cn('text-lg', sort === item.value && 'text-blue-500')}>
+                                        {item.label}
+                                    </Text>
+                                    {sort === item.value && <Icon name="Check" size={14} className="text-blue-500" />}
+                                </TouchableOpacity>
+                            )
+                        })}
+                    </View>
                 </BottomSheetView>
             </BottomSheetModal>
         </SafeAreaView>

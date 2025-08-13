@@ -63,6 +63,7 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
         formState: { errors },
         watch,
         trigger,
+        setValue,
     } = useForm<TFormSchema>({
         mode: 'all',
         resolver: zodResolver(formSchema),
@@ -106,12 +107,19 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
 
     useUpdateEffect(() => {
         console.log('触发update')
-        trigger(['currentEpisode', 'totalEpisode', 'firstEpisodeYYYYMMDDHHmm', 'lastEpisodeYYYYMMDDHHmm'])
+        if (currentEpisode !== 0 || totalEpisode !== 0) {
+            trigger(['currentEpisode', 'totalEpisode', 'firstEpisodeYYYYMMDDHHmm', 'lastEpisodeYYYYMMDDHHmm'])
+        }
     }, [totalEpisode, currentEpisode, firstEpisodeYYYYMMDDHHmm, lastEpisodeYYYYMMDDHHmm, status])
 
     const onSubmit: SubmitHandler<TFormSchema> = async data => {
         submit(data)
     }
+
+    useEffect(() => {
+        setValue('firstEpisodeYYYYMMDDHHmm', dayjs().format('YYYY-MM-DD HH:mm'))
+        setValue('lastEpisodeYYYYMMDDHHmm', dayjs().format('YYYY-MM-DD HH:mm'))
+    }, [setValue])
 
     const getFirstEpisodeDateTime = useMemo<string>(() => {
         if (totalEpisode < 1) {

@@ -4,7 +4,6 @@ import { EStatus } from '@/enums'
 import { blurhash } from '@/styles'
 import { cn } from '@/utils/cn'
 import { getcurrentEpisode, getLastEpisodeTimestamp, getStatus } from '@/utils/time'
-import { ClassValue } from 'clsx'
 import { Image } from 'expo-image'
 import { router, useNavigation } from 'expo-router'
 import React, { useLayoutEffect, useState } from 'react'
@@ -37,7 +36,7 @@ export default function Search() {
                 </TouchableOpacity>
                 <View className="h-10 flex-1 flex-row items-center rounded-3xl border border-gray-400 pl-2">
                     <Icon name="Search" size={20} />
-                    <TextInput className="m-0 h-14 flex-1 p-0 pl-2" onChangeText={setKeyword} />
+                    <TextInput className="m-0 h-14 flex-1 p-0 pl-2" onChangeText={setKeyword} onEndEditing={search} />
                 </View>
                 <TouchableOpacity onPress={search}>
                     <Text>搜索</Text>
@@ -53,25 +52,12 @@ export default function Search() {
                     })
                 )
 
-                const mapColor: Record<typeof EStatus.valueType, { bgColor: ClassValue; textColor: ClassValue }> = {
-                    [EStatus.completed]: {
-                        bgColor: 'bg-red-100',
-                        textColor: 'text-red-900',
-                    },
-                    [EStatus.serializing]: {
-                        bgColor: 'bg-green-100',
-                        textColor: 'text-green-900',
-                    },
-                    [EStatus.toBeUpdated]: {
-                        bgColor: 'bg-orange-100',
-                        textColor: 'text-orange-900',
-                    },
-                }
                 return (
                     <TouchableOpacity
                         key={item.id}
-                        className="flex-row"
+                        className="mb-2 flex-row"
                         onPress={() => router.push(`/animeDetail/${item.id}`)}
+                        activeOpacity={0.5}
                     >
                         <Image
                             source={item.cover}
@@ -83,13 +69,15 @@ export default function Search() {
                         />
                         <View>
                             <Text className="text-lg font-medium">{item.name}</Text>
+                            <Text className={cn('text-sm')}>
+                                状态：
+                                <Text className={cn(`text-${EStatus.key(status)}`)}>{EStatus.raw(status).label}</Text>
+                            </Text>
                             <Text className="text-sm">
                                 更新进度:
-                                {` ${getcurrentEpisode({ firstEpisodeTimestamp: item.firstEpisodeTimestamp, totalEpisode: item.totalEpisode })}/${item.totalEpisode}`}
-                            </Text>
-                            <Text className={cn('text-sm', mapColor[status].textColor)}>
-                                状态：
-                                {EStatus.raw(status).label}
+                                <Text>
+                                    {` ${getcurrentEpisode({ firstEpisodeTimestamp: item.firstEpisodeTimestamp, totalEpisode: item.totalEpisode })}/${item.totalEpisode}`}
+                                </Text>
                             </Text>
                         </View>
                     </TouchableOpacity>
@@ -104,7 +92,7 @@ const styles = StyleSheet.create({
     cover: {
         width: 80,
         height: width * 1.5,
-        borderRadius: 12,
+        borderRadius: 6,
         marginRight: 10,
     },
 })
