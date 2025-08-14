@@ -15,9 +15,9 @@ import {
 } from '@/utils/time'
 import dayjs from 'dayjs'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
-import { debounce } from 'es-toolkit'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
+import { debounce } from 'lodash-es'
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -178,7 +178,8 @@ function AnimeCardItem({ time, animeList }: IAnimeCardItemProps) {
             },
             300,
             {
-                edges: ['leading', 'trailing'],
+                leading: true,
+                trailing: false,
             }
         )
         debounceHandler()

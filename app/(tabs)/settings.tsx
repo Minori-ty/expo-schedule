@@ -19,8 +19,7 @@ import { queryClient } from '@/utils/react-query'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
-import { debounce } from 'es-toolkit'
-import { differenceBy } from 'lodash-es'
+import { debounce, differenceBy } from 'lodash-es'
 import { Calendar, Download, FileText, Trash2, Upload } from 'lucide-react-native'
 import React, { useCallback, useMemo, useState } from 'react'
 import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native'
@@ -99,7 +98,8 @@ export default function Setting() {
                 },
                 300,
                 {
-                    edges: ['leading', 'trailing'],
+                    leading: true,
+                    trailing: false,
                 }
             )
 
@@ -134,7 +134,8 @@ export default function Setting() {
             },
             300,
             {
-                edges: ['leading', 'trailing'],
+                leading: true,
+                trailing: false,
             }
         )
 

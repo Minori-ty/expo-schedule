@@ -17,9 +17,9 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import { eq } from 'drizzle-orm'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
-import { debounce } from 'es-toolkit'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router'
+import { debounce } from 'lodash-es'
 import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import DateTimePicker, {
@@ -117,7 +117,8 @@ function AnimeDetail() {
             },
             300,
             {
-                edges: ['leading', 'trailing'],
+                leading: true,
+                trailing: false,
             }
         )
 
@@ -151,7 +152,8 @@ function AnimeDetail() {
             },
             300,
             {
-                edges: ['leading', 'trailing'],
+                leading: true,
+                trailing: false,
             }
         )
 
@@ -183,7 +185,8 @@ function AnimeDetail() {
             },
             300,
             {
-                edges: ['leading', 'trailing'],
+                leading: true,
+                trailing: false,
             }
         )
 
