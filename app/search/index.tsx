@@ -41,7 +41,7 @@ export default function Search() {
             value: EStatus.toBeUpdated,
             color: 'text-toBeUpdated',
         },
-    })
+    } as const)
 
     return (
         <SafeAreaView className="flex-1 bg-white px-6">

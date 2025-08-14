@@ -4,6 +4,7 @@ CREATE TABLE `anime` (
 	`total_episode` integer NOT NULL,
 	`cover` text NOT NULL,
 	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch()) NOT NULL,
 	`first_episode_timestamp` integer NOT NULL,
 	`event_id` text
 );

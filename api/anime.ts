@@ -88,7 +88,7 @@ export async function updateAnimeById(tx: TTx, data: DeepExpand<IUpdateAnimeByAn
             firstEpisodeTimestamp,
             totalEpisode,
             eventId,
-            createdAt: dayjs().unix(),
+            updatedAt: dayjs().unix(),
         })
         .where(eq(animeTable.id, data.animeId))
 }
@@ -103,6 +103,7 @@ export interface IAnime {
     lastEpisodeTimestamp: number
     updateTimeHHmm: string
     eventId: string | null
+    createdAt: number
 }
 
 /**
@@ -199,7 +200,7 @@ interface IParseAnimeData {
  * @returns
  */
 export function parseAnimeData(data: IParseAnimeData): DeepExpand<IAnime> {
-    const { id, name, totalEpisode, cover, firstEpisodeTimestamp, eventId } = data
+    const { id, name, totalEpisode, cover, firstEpisodeTimestamp, eventId, createdAt } = data
     const updateWeekday = dayjs.unix(firstEpisodeTimestamp).isoWeekday() as typeof EWeekday.valueType
     const firstEpisodeYYYYMMDDHHmm = dayjs.unix(firstEpisodeTimestamp).format('YYYY-MM-DD HH:mm')
     const lastEpisodeTimestamp = getLastEpisodeTimestamp({ firstEpisodeTimestamp, totalEpisode })
@@ -214,5 +215,6 @@ export function parseAnimeData(data: IParseAnimeData): DeepExpand<IAnime> {
         lastEpisodeTimestamp,
         updateTimeHHmm: firstEpisodeYYYYMMDDHHmm,
         eventId,
+        createdAt,
     }
 }

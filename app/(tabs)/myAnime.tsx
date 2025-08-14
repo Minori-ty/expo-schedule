@@ -100,9 +100,9 @@ export default function MyAnime() {
             })
             .sort((a, b) => {
                 if (sort === ESortList.positive) {
-                    return a.firstEpisodeTimestamp - b.firstEpisodeTimestamp
+                    return a.createdAt - b.createdAt
                 } else {
-                    return b.firstEpisodeTimestamp - a.firstEpisodeTimestamp
+                    return b.createdAt - a.createdAt
                 }
             })
     }, [data, status, sort])

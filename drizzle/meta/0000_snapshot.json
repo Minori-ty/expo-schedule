@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "3dd104cc-50e2-449b-a53a-cc33c7ef516f",
+  "id": "9f538a91-eb92-429d-9053-1db34f225f28",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "anime": {
@@ -37,6 +37,14 @@
         },
         "created_at": {
           "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "updated_at": {
+          "name": "updated_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,

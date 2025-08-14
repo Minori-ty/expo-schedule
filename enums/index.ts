@@ -12,7 +12,7 @@ export const EStatus = Enum({
     serializing: {
         value: 2,
         label: '连载中',
-        color: '#67C23A',
+        color: '#409eff',
     },
     /** 即将更新 */
     toBeUpdated: {

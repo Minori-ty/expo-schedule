@@ -13,6 +13,10 @@ export const animeTable = sqliteTable('anime', {
         .notNull()
         .default(sql`(unixepoch())`),
     /** unix时间戳 */
+    updatedAt: integer('updated_at')
+        .notNull()
+        .default(sql`(unixepoch())`),
+    /** unix时间戳 */
     firstEpisodeTimestamp: integer('first_episode_timestamp').notNull(),
     /** 日历的id */
     eventId: text('event_id'),
@@ -21,6 +25,7 @@ export const animeTable = sqliteTable('anime', {
 // 生成 Zod 验证模式
 export const insertAnimeSchema = createInsertSchema(animeTable, {
     createdAt: schema => schema.int().gte(0),
+    updatedAt: schema => schema.int().gte(0),
     firstEpisodeTimestamp: schema => schema.int().gte(0),
 })
 
