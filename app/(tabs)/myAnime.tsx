@@ -357,9 +357,13 @@ function SelectItem({ item, status, setStatus }: ISelectItem) {
             onPress={() => setStatus(item.value)}
             activeOpacity={1}
             onPressIn={e => {
+                if (status === item.value) return
                 setBgColor('bg-gray-300')
             }}
-            onPressOut={e => setBgColor('bg-white')}
+            onPressOut={e => {
+                if (status === item.value) return
+                setBgColor('bg-white')
+            }}
         >
             <Text className={cn('text-lg', status === item.value && 'text-blue-500')}>{item.label}</Text>
             {status === item.value && <Icon name="Check" size={22} className="text-blue-500" />}
@@ -381,9 +385,13 @@ function SortItem({ item, sort, setSort }: ISortItem) {
             onPress={() => setSort(item.value)}
             activeOpacity={1}
             onPressIn={e => {
+                if (sort === item.value) return
                 setBgColor('bg-gray-300')
             }}
-            onPressOut={e => setBgColor('bg-white')}
+            onPressOut={e => {
+                if (sort === item.value) return
+                setBgColor('bg-white')
+            }}
         >
             <Text className={cn('text-lg', sort === item.value && 'text-blue-500')}>{item.label}</Text>
             {sort === item.value && <Icon name="Check" size={22} className="text-blue-500" />}

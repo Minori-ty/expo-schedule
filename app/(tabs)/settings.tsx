@@ -256,12 +256,6 @@ export default function Setting() {
                     text1: '导入成功！',
                 })
             },
-            onError: err => {
-                Toast.show({
-                    type: 'error',
-                    text1: err.message,
-                })
-            },
         })
 
     const { mutate: deleteJsonFileMution } = useMutation({
