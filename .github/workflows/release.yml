@@ -100,7 +100,7 @@ jobs:
               id: get-commits
               run: |
                   # 将提交信息收集到环境变量，保留换行符
-                  COMMIT_MESSAGES=$(git log -n 10 --pretty=format:"- %s by [@%an](%an) in %h")
+                  COMMIT_MESSAGES=$(git log -n 10 --pretty=format:"- %s by %an in %h")
                   echo "COMMIT_MESSAGES<<EOF" >> $GITHUB_ENV
                   echo "$COMMIT_MESSAGES" >> $GITHUB_ENV
                   echo "EOF" >> $GITHUB_ENV
