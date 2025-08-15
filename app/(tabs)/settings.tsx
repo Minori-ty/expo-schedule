@@ -34,16 +34,6 @@ export default function Setting() {
     const [selectedAnimeIdList, setSelectedAnimeIdList] = useState<number[]>([])
     const [selectedJsonFileList, setSelectedJsonFileList] = useState<string[]>([])
 
-    // const {
-    //     data: calendarList = [],
-    //     refetch,
-    //     isLoading,
-    // } = useQuery({
-    //     queryKey: ['settings-calendar'],
-    //     queryFn: getCalendarWithAnimeList,
-    //     refetchOnWindowFocus: true,
-    // })
-
     const { data, updatedAt } = useLiveQuery(db.select().from(animeTable))
 
     type TData = (typeof data)[number]
@@ -56,6 +46,11 @@ export default function Setting() {
     const calendarList = useMemo(() => {
         return data.filter(hasEventId)
     }, [data, hasEventId])
+
+    const idList = useMemo(() => {
+        const list = calendarList.map(item => item.id)
+        return list.filter(id => selectedAnimeIdList.includes(id))
+    }, [calendarList, selectedAnimeIdList])
 
     const isLoading = useMemo(() => {
         return !updatedAt
@@ -80,12 +75,10 @@ export default function Setting() {
             }
         },
         onError: err => {
-            console.log('扫描失败', err)
-
-            // Toast.show({
-            //     type: 'error',
-            //     text1: `获取日历事件失败 ${err}`,
-            // })
+            Toast.show({
+                type: 'error',
+                text1: `获取日历事件失败 ${err}`,
+            })
         },
     })
 
@@ -123,14 +116,13 @@ export default function Setting() {
                 })
                 setSelectedAnimeIdList([])
             },
-            onError: err => {},
         })
 
     /** 删除所有日历事件 */
     const handleUnsubscribeAll = useCallback(() => {
         const debounceHandler = debounce(
             () => {
-                handleCalendarByAnimeIdListMution(selectedAnimeIdList)
+                handleCalendarByAnimeIdListMution(idList)
             },
             300,
             {
@@ -142,7 +134,7 @@ export default function Setting() {
         debounceHandler()
 
         return () => debounceHandler.cancel()
-    }, [handleCalendarByAnimeIdListMution, selectedAnimeIdList])
+    }, [handleCalendarByAnimeIdListMution, idList])
 
     const handleEventSelectAll = (state: CheckboxState) => {
         if (state === 'checked') {
@@ -438,18 +430,14 @@ export default function Setting() {
                                 <View className="space-y-3">
                                     {fileList.map(file => (
                                         <View key={file.name} className="flex-row rounded-lg bg-gray-50 p-3">
-                                            <View className="mt-2">
-                                                <Checkbox
-                                                    state={
-                                                        selectedJsonFileList.includes(file.name)
-                                                            ? 'checked'
-                                                            : 'unchecked'
-                                                    }
-                                                    onStateChange={state =>
-                                                        handleFileSelect(file.name, state === 'checked')
-                                                    }
-                                                />
-                                            </View>
+                                            <Checkbox
+                                                state={
+                                                    selectedJsonFileList.includes(file.name) ? 'checked' : 'unchecked'
+                                                }
+                                                onStateChange={state =>
+                                                    handleFileSelect(file.name, state === 'checked')
+                                                }
+                                            />
                                             <View className="ml-3 flex-1">
                                                 <Text className="font-medium text-gray-900">{file.name}</Text>
                                                 <View className="mt-1 flex-row items-center">
@@ -466,7 +454,7 @@ export default function Setting() {
                                             </View>
 
                                             <TouchableOpacity
-                                                className="p-2"
+                                                className="mt-1"
                                                 onPress={() => {
                                                     Modal.show({
                                                         body: (
@@ -493,14 +481,14 @@ export default function Setting() {
                                     <Calendar size={20} color="#374151" />
                                     <Text className="ml-2 text-lg font-semibold text-gray-900">动漫日历事件</Text>
                                 </View>
-                                {selectedAnimeIdList.length > 0 && (
+                                {idList.length > 0 && (
                                     <TouchableOpacity
                                         className="flex-row items-center rounded-lg bg-red-100 px-3 py-2"
                                         onPress={() => {
                                             Modal.show({
                                                 body: (
                                                     <Text className="text-sm">
-                                                        你确定要删除{selectedAnimeIdList.length}个动漫日历事件吗？
+                                                        你确定要删除{idList.length}个动漫日历事件吗？
                                                     </Text>
                                                 ),
                                                 onConfirm: handleUnsubscribeAll,
@@ -510,7 +498,7 @@ export default function Setting() {
                                     >
                                         <Trash2 size={14} color="#dc2626" />
                                         <Text className="ml-1 text-sm font-medium text-red-600">
-                                            删除 ({selectedAnimeIdList.length})
+                                            删除 ({idList.length})
                                         </Text>
                                     </TouchableOpacity>
                                 )}
@@ -535,7 +523,7 @@ export default function Setting() {
                                         return (
                                             <View
                                                 key={item.id}
-                                                className="mb-2 flex-row items-start rounded-lg bg-gray-50 p-3"
+                                                className="mb-2 flex-row items-center rounded-lg bg-gray-50 p-3"
                                             >
                                                 <Checkbox
                                                     state={
@@ -544,14 +532,12 @@ export default function Setting() {
                                                     onStateChange={state =>
                                                         handleEventSelect(item.id, state === 'checked')
                                                     }
-                                                    className="mt-1"
                                                 />
-                                                <View className="ml-3 flex-1">
+                                                <View className="flex-1">
                                                     <Text className="font-medium text-gray-900">{item.name}</Text>
                                                 </View>
 
                                                 <TouchableOpacity
-                                                    className="p-2"
                                                     onPress={() => {
                                                         Modal.show({
                                                             body: (
