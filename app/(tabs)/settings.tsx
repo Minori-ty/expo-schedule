@@ -57,9 +57,9 @@ export default function Setting() {
     })
 
     useEffect(() => {
-        const allId = data.map(item => item.id)
-        setSelectedAnimeIdList(prev => prev.filter(id => allId.includes(id)))
-    }, [data])
+        const allId = calendarList.map(item => item.id)
+        setSelectedAnimeIdList(prev => prev.filter(item => allId.includes(item)))
+    }, [calendarList])
 
     const { mutate: handleClearCalendarByAnimeIdMution } = useMutation({
         mutationFn: deleteCalendarByAnimeId,
@@ -216,7 +216,10 @@ export default function Setting() {
         const jsonData = await importJsonFile()
         const result = validateJsonData.safeParse(jsonData)
         if (!result.success) {
-            console.log('json数据校验失败，不符合格式')
+            Toast.show({
+                type: 'error',
+                text1: 'json数据校验失败，不符合格式',
+            })
             return
         }
         const data = await getAnimeList()
