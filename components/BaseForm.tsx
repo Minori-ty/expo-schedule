@@ -117,16 +117,11 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
     }
 
     useEffect(() => {
-        // setValue('firstEpisodeYYYYMMDDHHmm', dayjs().format('YYYY-MM-DD HH:mm'))
-        // setValue('lastEpisodeYYYYMMDDHHmm', dayjs().format('YYYY-MM-DD HH:mm'))
         if (formData.status === EStatus.serializing) {
-            setValue('firstEpisodeYYYYMMDDHHmm', formData.updateTimeHHmm)
-            setValue(
-                'lastEpisodeYYYYMMDDHHmm',
-                dayjs(formData.updateTimeHHmm, 'YYYY-MM-DD HH:mm')
-                    .add(totalEpisode - 1, 'week')
-                    .format('YYYY-MM-DD HH:mm')
-            )
+            if (totalEpisode === 0) {
+                setValue('firstEpisodeYYYYMMDDHHmm', formData.updateTimeHHmm)
+                setValue('lastEpisodeYYYYMMDDHHmm', dayjs().format('YYYY-MM-DD HH:mm'))
+            }
         }
     }, [formData, setValue, totalEpisode])
 

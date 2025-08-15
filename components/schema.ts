@@ -38,13 +38,13 @@ const formSchema = z
     .and(statusSchema)
     .superRefine((val, ctx) => {
         if (val.status === EStatus.serializing) {
-            if (val.currentEpisode === 0) {
-                ctx.addIssue({
-                    code: ZodIssueCode.custom,
-                    path: ['currentEpisode'],
-                    message: '当前番剧还未播出，请选择即将更新状态',
-                })
-            }
+            // if (val.currentEpisode === 0) {
+            //     ctx.addIssue({
+            //         code: ZodIssueCode.custom,
+            //         path: ['currentEpisode'],
+            //         message: '当前番剧还未播出，请选择即将更新状态',
+            //     })
+            // }
             if (val.totalEpisode !== 0) {
                 if (val.currentEpisode > val.totalEpisode) {
                     ctx.addIssue({
@@ -72,26 +72,32 @@ const formSchema = z
 
         if (val.status === EStatus.completed) {
             const { totalEpisode, lastEpisodeYYYYMMDDHHmm } = val
+            const lastEpisodeTimestamp = dayjs(lastEpisodeYYYYMMDDHHmm, 'YYYY-MM-DD HH:mm').unix()
             const firstEpisodeTimestamp = dayjs(`${lastEpisodeYYYYMMDDHHmm}`, 'YYYY-MM-DD HH:mm')
                 .subtract(totalEpisode - 1, 'week')
                 .unix()
-
-            if (lastEpisodeYYYYMMDDHHmm === undefined) {
+            if (lastEpisodeTimestamp > dayjs().unix()) {
                 ctx.addIssue({
                     code: ZodIssueCode.custom,
                     path: ['lastEpisodeYYYYMMDDHHmm'],
-                    message: '请选择日期',
-                })
-            }
-            if (firstEpisodeTimestamp > dayjs().unix()) {
-                ctx.addIssue({
-                    code: ZodIssueCode.custom,
-                    path: ['lastEpisodeYYYYMMDDHHmm'],
-                    message: '当前番剧还未播出，请选择即将更新状态',
+                    message: '当前番剧还未完结，请选择连载中状态',
                 })
             }
             if (totalEpisode !== 0) {
-                const lastEpisodeTimestamp = getLastEpisodeTimestamp({ firstEpisodeTimestamp, totalEpisode })
+                if (lastEpisodeYYYYMMDDHHmm === undefined) {
+                    ctx.addIssue({
+                        code: ZodIssueCode.custom,
+                        path: ['lastEpisodeYYYYMMDDHHmm'],
+                        message: '请选择日期',
+                    })
+                }
+                if (firstEpisodeTimestamp > dayjs().unix()) {
+                    ctx.addIssue({
+                        code: ZodIssueCode.custom,
+                        path: ['lastEpisodeYYYYMMDDHHmm'],
+                        message: '当前番剧还未播出，请选择即将更新状态',
+                    })
+                }
 
                 if (lastEpisodeTimestamp > dayjs().unix()) {
                     ctx.addIssue({
@@ -108,27 +114,37 @@ const formSchema = z
             const firstEpisodeTimestamp = dayjs(`${firstEpisodeYYYYMMDDHHmm}`).unix()
             const lastEpisodeTimestamp = getLastEpisodeTimestamp({ firstEpisodeTimestamp, totalEpisode })
 
-            if (firstEpisodeYYYYMMDDHHmm === '') {
+            if (firstEpisodeTimestamp <= dayjs().unix()) {
                 ctx.addIssue({
                     code: ZodIssueCode.custom,
                     path: ['firstEpisodeYYYYMMDDHHmm'],
-                    message: '请选择日期',
+                    message: '当前番剧连载中，请选择连载中状态',
                 })
             }
-            if (lastEpisodeTimestamp < dayjs().unix()) {
-                ctx.addIssue({
-                    code: ZodIssueCode.custom,
-                    path: ['firstEpisodeYYYYMMDDHHmm'],
-                    message: '当前番剧已完结，请选择已完结状态',
-                })
-            }
+
             if (totalEpisode !== 0) {
-                if (firstEpisodeTimestamp < dayjs().unix() && lastEpisodeTimestamp > dayjs().unix()) {
+                if (firstEpisodeYYYYMMDDHHmm === undefined) {
                     ctx.addIssue({
                         code: ZodIssueCode.custom,
                         path: ['firstEpisodeYYYYMMDDHHmm'],
-                        message: '当前番剧连载中，请选择连载中状态',
+                        message: '请选择日期',
                     })
+                }
+                if (lastEpisodeTimestamp < dayjs().unix()) {
+                    ctx.addIssue({
+                        code: ZodIssueCode.custom,
+                        path: ['firstEpisodeYYYYMMDDHHmm'],
+                        message: '当前番剧已完结，请选择已完结状态',
+                    })
+                }
+                if (totalEpisode !== 0) {
+                    if (firstEpisodeTimestamp < dayjs().unix() && lastEpisodeTimestamp > dayjs().unix()) {
+                        ctx.addIssue({
+                            code: ZodIssueCode.custom,
+                            path: ['firstEpisodeYYYYMMDDHHmm'],
+                            message: '当前番剧连载中，请选择连载中状态',
+                        })
+                    }
                 }
             }
         }
