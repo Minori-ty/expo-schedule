@@ -53,7 +53,7 @@ export default function Search() {
                     <View className="flex-1 flex-row items-center rounded-3xl border border-[#ccc] pl-2">
                         <Icon name="Search" size={20} />
                         <TextInput
-                            className="h-10 flex-1 p-0 pl-2 pt-1 text-start text-base leading-7"
+                            className="h-10 flex-1 p-0 pl-2 pt-1 text-end text-base leading-7"
                             onChangeText={setKeyword}
                             onEndEditing={search}
                         />

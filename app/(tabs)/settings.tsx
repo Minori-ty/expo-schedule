@@ -21,7 +21,7 @@ import dayjs from 'dayjs'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
 import { debounce, differenceBy } from 'lodash-es'
 import { Calendar, Download, FileText, Trash2, Upload } from 'lucide-react-native'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
@@ -47,11 +47,6 @@ export default function Setting() {
         return data.filter(hasEventId)
     }, [data, hasEventId])
 
-    const idList = useMemo(() => {
-        const list = calendarList.map(item => item.id)
-        return list.filter(id => selectedAnimeIdList.includes(id))
-    }, [calendarList, selectedAnimeIdList])
-
     const isLoading = useMemo(() => {
         return !updatedAt
     }, [updatedAt])
@@ -60,6 +55,12 @@ export default function Setting() {
         queryKey: ['settings-json-file'],
         queryFn: scanJsonFile,
     })
+
+    useEffect(() => {
+        const allId = data.map(item => item.id)
+        setSelectedAnimeIdList(prev => prev.filter(id => allId.includes(id)))
+    }, [data])
+
     const { mutate: handleClearCalendarByAnimeIdMution } = useMutation({
         mutationFn: deleteCalendarByAnimeId,
         onSuccess: (_, id) => {
@@ -122,7 +123,7 @@ export default function Setting() {
     const handleUnsubscribeAll = useCallback(() => {
         const debounceHandler = debounce(
             () => {
-                handleCalendarByAnimeIdListMution(idList)
+                handleCalendarByAnimeIdListMution(selectedAnimeIdList)
             },
             300,
             {
@@ -134,7 +135,7 @@ export default function Setting() {
         debounceHandler()
 
         return () => debounceHandler.cancel()
-    }, [handleCalendarByAnimeIdListMution, idList])
+    }, [handleCalendarByAnimeIdListMution, selectedAnimeIdList])
 
     const handleEventSelectAll = (state: CheckboxState) => {
         if (state === 'checked') {
@@ -146,7 +147,11 @@ export default function Setting() {
 
     // 事件全选状态管理
     const eventSelectAllState: CheckboxState =
-        idList.length === 0 ? 'unchecked' : idList.length === calendarList.length ? 'checked' : 'indeterminate'
+        selectedAnimeIdList.length === 0
+            ? 'unchecked'
+            : selectedAnimeIdList.length === calendarList.length
+              ? 'checked'
+              : 'indeterminate'
 
     const handleEventSelect = (animeId: number, checked: boolean) => {
         if (checked) {
@@ -476,14 +481,14 @@ export default function Setting() {
                                     <Calendar size={20} color="#374151" />
                                     <Text className="ml-2 text-lg font-semibold text-gray-900">动漫日历事件</Text>
                                 </View>
-                                {idList.length > 0 && (
+                                {selectedAnimeIdList.length > 0 && (
                                     <TouchableOpacity
                                         className="flex-row items-center rounded-lg bg-red-100 px-3 py-2"
                                         onPress={() => {
                                             Modal.show({
                                                 body: (
                                                     <Text className="text-sm">
-                                                        你确定要删除{idList.length}个动漫日历事件吗？
+                                                        你确定要删除{selectedAnimeIdList.length}个动漫日历事件吗？
                                                     </Text>
                                                 ),
                                                 onConfirm: handleUnsubscribeAll,
@@ -493,7 +498,7 @@ export default function Setting() {
                                     >
                                         <Trash2 size={14} color="#dc2626" />
                                         <Text className="ml-1 text-sm font-medium text-red-600">
-                                            删除 ({idList.length})
+                                            删除 ({selectedAnimeIdList.length})
                                         </Text>
                                     </TouchableOpacity>
                                 )}
@@ -518,7 +523,7 @@ export default function Setting() {
                                         return (
                                             <View
                                                 key={item.id}
-                                                className="mb-2 flex-row items-center rounded-lg bg-gray-50 p-3"
+                                                className="mb-2 flex-row items-center justify-between rounded-lg bg-gray-50 p-3"
                                             >
                                                 <Checkbox
                                                     state={
