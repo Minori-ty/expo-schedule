@@ -146,11 +146,7 @@ export default function Setting() {
 
     // 事件全选状态管理
     const eventSelectAllState: CheckboxState =
-        selectedAnimeIdList.length === 0
-            ? 'unchecked'
-            : selectedAnimeIdList.length === calendarList.length
-              ? 'checked'
-              : 'indeterminate'
+        idList.length === 0 ? 'unchecked' : idList.length === calendarList.length ? 'checked' : 'indeterminate'
 
     const handleEventSelect = (animeId: number, checked: boolean) => {
         if (checked) {
@@ -165,10 +161,9 @@ export default function Setting() {
      */
     async function exportDataToJsonFile() {
         const data = await getAnimeList()
-        const res = data.map(({ eventId, ...reset }) => {
+        const res = data.map(({ eventId, updatedAt, createdAt, ...reset }) => {
             return {
                 ...reset,
-                eventId: null,
             }
         })
         await exportJsonFile({ animeList: res }, `anime_data_${dayjs().format('YYYY_MM_DD')}.json`)
@@ -532,11 +527,8 @@ export default function Setting() {
                                                     onStateChange={state =>
                                                         handleEventSelect(item.id, state === 'checked')
                                                     }
+                                                    label={item.name}
                                                 />
-                                                <View className="flex-1">
-                                                    <Text className="font-medium text-gray-900">{item.name}</Text>
-                                                </View>
-
                                                 <TouchableOpacity
                                                     onPress={() => {
                                                         Modal.show({

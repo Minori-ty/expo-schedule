@@ -1,9 +1,13 @@
-import { IAnime } from '@/api/anime'
+import { animeTable } from '@/db/schema'
 import * as RNFS from '@dr.pogodin/react-native-fs'
 import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system'
+import type { DeepExpand } from 'types-tools'
 
 export const DIR = RNFS.DownloadDirectoryPath // 使用应用内私有目录
+
+type TAnime = DeepExpand<Omit<typeof animeTable.$inferSelect, 'createdAt' | 'updatedAt' | 'eventId'>>
+type TJsonFileData = DeepExpand<{ animeList: TAnime[] }>
 
 /**
  * 导出数据为json文件
@@ -11,7 +15,7 @@ export const DIR = RNFS.DownloadDirectoryPath // 使用应用内私有目录
  * @param filename
  * @returns
  */
-export async function exportJsonFile(data: object, filename: string) {
+export async function exportJsonFile(data: TJsonFileData, filename: string) {
     if (!filename.endsWith('.json')) {
         filename += '.json'
     }
@@ -30,7 +34,7 @@ export async function exportJsonFile(data: object, filename: string) {
  * 导入json文件数据
  * @returns
  */
-export async function importJsonFile(): Promise<{ animeList: IAnime[] }> {
+export async function importJsonFile(): Promise<TJsonFileData> {
     const result = await DocumentPicker.getDocumentAsync({
         type: 'application/json',
         copyToCacheDirectory: true,
