@@ -38,13 +38,13 @@ const formSchema = z
     .and(statusSchema)
     .superRefine((val, ctx) => {
         if (val.status === EStatus.serializing) {
-            // if (val.currentEpisode === 0) {
-            //     ctx.addIssue({
-            //         code: ZodIssueCode.custom,
-            //         path: ['currentEpisode'],
-            //         message: '当前番剧还未播出，请选择即将更新状态',
-            //     })
-            // }
+            if (val.currentEpisode === 0) {
+                ctx.addIssue({
+                    code: ZodIssueCode.custom,
+                    path: ['currentEpisode'],
+                    message: '当前集数至少为1',
+                })
+            }
             if (val.totalEpisode !== 0) {
                 if (val.currentEpisode > val.totalEpisode) {
                     ctx.addIssue({

@@ -58,8 +58,13 @@ export default function Setting() {
 
     useEffect(() => {
         const allId = calendarList.map(item => item.id)
-        setSelectedAnimeIdList(prev => prev.filter(item => allId.includes(item)))
+        setSelectedAnimeIdList(prev => prev.filter(id => allId.includes(id)))
     }, [calendarList])
+
+    useEffect(() => {
+        const allFile = fileList.map(item => item.name)
+        setSelectedJsonFileList(prev => prev.filter(fileName => allFile.includes(fileName)))
+    }, [fileList])
 
     const { mutate: handleClearCalendarByAnimeIdMution } = useMutation({
         mutationFn: deleteCalendarByAnimeId,
