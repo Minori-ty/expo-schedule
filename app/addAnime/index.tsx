@@ -11,6 +11,7 @@ import { router, useNavigation } from 'expo-router'
 import React, { useLayoutEffect } from 'react'
 import { type SubmitHandler } from 'react-hook-form'
 import Toast from 'react-native-toast-message'
+import * as Haptics from 'expo-haptics';
 
 export default function Index() {
     const navigation = useNavigation()
@@ -24,7 +25,7 @@ export default function Index() {
     const onSubmit: SubmitHandler<TFormSchema> = async data => {
         const { name, cover, totalEpisode } = data
         const result = await handleValidateAnimeNameIsExist(name)
-        if (result) return
+        if (result) {}
         if (data.status === EStatus.serializing) {
             const { currentEpisode, updateTimeHHmm, updateWeekday } = data
             if (updateWeekday === '') return

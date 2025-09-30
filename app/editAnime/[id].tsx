@@ -16,6 +16,7 @@ import { router, useLocalSearchParams, useNavigation } from 'expo-router'
 import React, { useEffect, useMemo } from 'react'
 import { type SubmitHandler } from 'react-hook-form'
 import Toast from 'react-native-toast-message'
+import * as Haptics from 'expo-haptics';
 
 export default function EditAnime() {
     const navigation = useNavigation()
@@ -84,7 +85,10 @@ export default function EditAnime() {
     const onSubmit: SubmitHandler<TFormSchema> = async data => {
         const { name, cover, totalEpisode } = data
         const result = await handleValidateAnimeNameIsExist(name, Number(id))
-        if (result) return
+        if (result) {
+            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            return
+        }
         if (data.status === EStatus.serializing) {
             const { currentEpisode, updateTimeHHmm, updateWeekday } = data
             if (updateWeekday === '') return
