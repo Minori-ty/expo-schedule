@@ -102,6 +102,7 @@ export default function MyAnime() {
                 if (sort === ESortList.positive) {
                     return a.createdAt - b.createdAt
                 } else {
+                    if(a.createdAt === b.createdAt) return -1
                     return b.createdAt - a.createdAt
                 }
             })
