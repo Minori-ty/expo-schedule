@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Picker } from '@react-native-picker/picker'
 import { useUpdateEffect } from 'ahooks'
 import dayjs from 'dayjs'
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics'
 import { useNavigation } from 'expo-router'
 import React, { PropsWithChildren, useEffect, useMemo, useRef } from 'react'
 import { Controller, FieldError, FieldErrors, SubmitHandler, useForm } from 'react-hook-form'
@@ -12,7 +13,7 @@ import { Button, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import type { DeepExpand } from 'types-tools'
 import { RadioGroup } from './RadioGroup'
-import { TFormSchema, formSchema } from './schema'
+import { formSchema, TFormSchema } from './schema'
 import Icon from './ui/Icon'
 
 interface IBaseFormData {
@@ -114,6 +115,10 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
 
     const onSubmit: SubmitHandler<TFormSchema> = async data => {
         submit(data)
+    }
+
+    const onSubmitError = () => {
+        notificationAsync(NotificationFeedbackType.Error)
     }
 
     useEffect(() => {
@@ -386,7 +391,7 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
                 />
             </FormItem>
             <View className="mb-20">
-                <Button title="提交" onPress={handleSubmit(onSubmit)} />
+                <Button title="提交" onPress={handleSubmit(onSubmit, onSubmitError)} />
             </View>
             <Controller
                 control={control}

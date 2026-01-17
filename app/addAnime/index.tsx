@@ -7,11 +7,11 @@ import { queryClient } from '@/utils/react-query'
 import { getFirstEpisodeTimestamp } from '@/utils/time'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics'
 import { router, useNavigation } from 'expo-router'
 import React, { useLayoutEffect } from 'react'
 import { type SubmitHandler } from 'react-hook-form'
 import Toast from 'react-native-toast-message'
-import * as Haptics from 'expo-haptics';
 
 export default function Index() {
     const navigation = useNavigation()
@@ -25,7 +25,9 @@ export default function Index() {
     const onSubmit: SubmitHandler<TFormSchema> = async data => {
         const { name, cover, totalEpisode } = data
         const result = await handleValidateAnimeNameIsExist(name)
-        if (result) {}
+        if (result) {
+            return
+        }
         if (data.status === EStatus.serializing) {
             const { currentEpisode, updateTimeHHmm, updateWeekday } = data
             if (updateWeekday === '') return
@@ -85,6 +87,7 @@ export default function Index() {
                 type: 'error',
                 text1: '该动漫已存在，请勿重复添加。如需修改，请编辑该动漫。',
             })
+            notificationAsync(NotificationFeedbackType.Error)
             return true
         }
         return false

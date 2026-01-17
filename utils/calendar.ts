@@ -1,7 +1,8 @@
+import { EStatus } from '@/enums'
 import { getCalendarPermission } from '@/permissions'
 import dayjs from 'dayjs'
 import * as Calendar from 'expo-calendar'
-import { isCurrentWeekdayUpdateTimePassed } from './time'
+import { getLastEpisodeTimestamp, getStatus, isCurrentWeekdayUpdateTimePassed } from './time'
 
 /**
  * 删除日历事件，如果删除失败，则返回false
@@ -68,51 +69,90 @@ export async function addCalendarEvent({
         return null
     }
 
-    const firstday = dayjs.unix(firstEpisodeTimestamp)
-    /** 更新对应的星期 */
-    const weekday = firstday.isoWeekday()
-    /** 更新对应的小时 */
-    const hour = firstday.hour()
-    /** 更新对应的分钟 */
-    const minute = firstday.minute()
-    /** 本周更新的时间(但是有可能已经过去了) */
-    const updateDayInCurrentWeek = dayjs().isoWeekday(weekday).hour(hour).minute(minute)
-    // 如果没超过，则定在本周。如果超过了，则时间定在下周。
-    /** 日历开始通知的时间 */
-    const startDate = isCurrentWeekdayUpdateTimePassed(updateDayInCurrentWeek.format('YYYY-MM-DD HH:mm'))
-        ? updateDayInCurrentWeek.add(7, 'day').toDate()
-        : updateDayInCurrentWeek.toDate()
-    /** 日历事件结束的时候 */
-    const endDate = dayjs(startDate).add(1, 'minute').toDate()
+    const lastEpisodeTimestamp = getLastEpisodeTimestamp({ firstEpisodeTimestamp, totalEpisode })
+    const status = getStatus(firstEpisodeTimestamp, lastEpisodeTimestamp)
+    if (status === EStatus.completed) {
+        console.log('动漫已完成，不创建日历事件')
+        return null
+    }
 
-    // 解析输入的时间字符串
-    try {
+    if (status === EStatus.toBeUpdated) {
+        try {
+            const eventId = await Calendar.createEventAsync(defaultCalendar.id, {
+                title: `${name} 即将更新!`,
+                startDate: dayjs.unix(firstEpisodeTimestamp).toDate(),
+                endDate: dayjs.unix(firstEpisodeTimestamp).toDate(),
+                timeZone: 'Asia/Shanghai',
+                alarms: [
+                    {
+                        relativeOffset: 0,
+                        method: Calendar.AlarmMethod.ALERT,
+                    }, // 准时通知
+                ],
+                recurrenceRule: {
+                    frequency: Calendar.Frequency.WEEKLY,
+                    interval: 1,
+                    occurrence: totalEpisode - currentEpisode,
+                },
+            })
+            console.log('创建日历成功')
+            return eventId
+        } catch (error) {
+            alert(`calendar.ts ${error}`)
+            return null
+        }
+    }
+
+    if (status === EStatus.serializing) {
         if (totalEpisode - currentEpisode < 1) {
             return null
         }
-        const eventId = await Calendar.createEventAsync(defaultCalendar.id, {
-            title: `${name} 即将更新!`,
-            startDate,
-            endDate,
-            timeZone: 'Asia/Shanghai',
-            alarms: [
-                {
-                    relativeOffset: 0,
-                    method: Calendar.AlarmMethod.ALERT,
-                }, // 准时通知
-            ],
-            recurrenceRule: {
-                frequency: Calendar.Frequency.WEEKLY,
-                interval: 1,
-                occurrence: totalEpisode - currentEpisode,
-            },
-        })
-        console.log('创建日历成功')
-        return eventId
-    } catch (error) {
-        alert(`calendar.ts ${error}`)
-        return null
+
+        const firstday = dayjs.unix(firstEpisodeTimestamp)
+        /** 更新对应的星期 */
+        const weekday = firstday.isoWeekday()
+        /** 更新对应的小时 */
+        const hour = firstday.hour()
+        /** 更新对应的分钟 */
+        const minute = firstday.minute()
+        /** 本周更新的时间(但是有可能已经过去了) */
+        const updateDayInCurrentWeek = dayjs().isoWeekday(weekday).hour(hour).minute(minute)
+        // 如果没超过，则定在本周。如果超过了，则时间定在下周。
+        /** 日历开始通知的时间 */
+        const startDate = isCurrentWeekdayUpdateTimePassed(updateDayInCurrentWeek.format('YYYY-MM-DD HH:mm'))
+            ? updateDayInCurrentWeek.add(7, 'day').toDate()
+            : updateDayInCurrentWeek.toDate()
+        /** 日历事件结束的时候 */
+        const endDate = dayjs(startDate).add(1, 'minute').toDate()
+
+        // 解析输入的时间字符串
+        try {
+            const eventId = await Calendar.createEventAsync(defaultCalendar.id, {
+                title: `${name} 即将更新!`,
+                startDate,
+                endDate,
+                timeZone: 'Asia/Shanghai',
+                alarms: [
+                    {
+                        relativeOffset: 0,
+                        method: Calendar.AlarmMethod.ALERT,
+                    }, // 准时通知
+                ],
+                recurrenceRule: {
+                    frequency: Calendar.Frequency.WEEKLY,
+                    interval: 1,
+                    occurrence: totalEpisode - currentEpisode,
+                },
+            })
+            console.log('创建日历成功')
+            return eventId
+        } catch (error) {
+            alert(`calendar.ts ${error}`)
+            return null
+        }
     }
+
+    return null
 }
 
 /**
