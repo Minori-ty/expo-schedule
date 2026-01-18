@@ -1,6 +1,6 @@
 import { handleAddAnime } from '@/api'
 import { getAnimeByName } from '@/api/anime'
-import BaseAnimeForm from '@/components/BaseForm'
+import BaseAnimeForm, { IBaseFormRef } from '@/components/BaseForm'
 import { formDefaultValues, type TFormSchema } from '@/components/schema'
 import { EStatus } from '@/enums'
 import { queryClient } from '@/utils/react-query'
@@ -9,9 +9,8 @@ import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { notificationAsync, NotificationFeedbackType } from 'expo-haptics'
 import { router, useNavigation } from 'expo-router'
-import React, { useLayoutEffect } from 'react'
+import React, { useLayoutEffect, useRef } from 'react'
 import { type SubmitHandler } from 'react-hook-form'
-import Toast from 'react-native-toast-message'
 
 export default function Index() {
     const navigation = useNavigation()
@@ -22,6 +21,7 @@ export default function Index() {
         })
     }, [navigation])
 
+    const baseFormRef = useRef<IBaseFormRef>(null)
     const onSubmit: SubmitHandler<TFormSchema> = async data => {
         const { name, cover, totalEpisode } = data
         const result = await handleValidateAnimeNameIsExist(name)
@@ -83,15 +83,16 @@ export default function Index() {
     async function handleValidateAnimeNameIsExist(name: string) {
         const result = await getAnimeByName(name)
         if (result) {
-            Toast.show({
-                type: 'error',
-                text1: '该动漫已存在，请勿重复添加。如需修改，请编辑该动漫。',
-            })
+            // Toast.show({
+            //     type: 'error',
+            //     text1: '该动漫已存在，请勿重复添加。如需修改，请编辑该动漫。',
+            // })
+            baseFormRef.current?.setNameError('该动漫已存在，请勿重复添加。如需修改，请编辑该动漫。')
             notificationAsync(NotificationFeedbackType.Error)
             return true
         }
         return false
     }
 
-    return <BaseAnimeForm formData={formDefaultValues} onSubmit={onSubmit} />
+    return <BaseAnimeForm formData={formDefaultValues} onSubmit={onSubmit} ref={baseFormRef} />
 }

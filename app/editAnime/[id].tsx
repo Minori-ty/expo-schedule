@@ -1,6 +1,6 @@
 import { handleUpdateAnimeById } from '@/api'
 import { getAnimeByNameExceptItself, parseAnimeData } from '@/api/anime'
-import BaseAnimeForm from '@/components/BaseForm'
+import BaseAnimeForm, { IBaseFormRef } from '@/components/BaseForm'
 import Loading from '@/components/lottie/Loading'
 import { formDefaultValues, TFormSchema } from '@/components/schema'
 import { db } from '@/db'
@@ -12,11 +12,10 @@ import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { eq } from 'drizzle-orm'
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite'
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics'
 import { router, useLocalSearchParams, useNavigation } from 'expo-router'
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { type SubmitHandler } from 'react-hook-form'
-import Toast from 'react-native-toast-message'
-import * as Haptics from 'expo-haptics';
 
 export default function EditAnime() {
     const navigation = useNavigation()
@@ -28,6 +27,8 @@ export default function EditAnime() {
     }, [navigation])
 
     const { id } = useLocalSearchParams<{ id: string }>()
+
+    const baseFormRef = useRef<IBaseFormRef>(null)
 
     // const { data: data = formData, isLoading } = useQuery({
     //     queryKey: ['anime-edit', id],
@@ -86,7 +87,7 @@ export default function EditAnime() {
         const { name, cover, totalEpisode } = data
         const result = await handleValidateAnimeNameIsExist(name, Number(id))
         if (result) {
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            await notificationAsync(NotificationFeedbackType.Error)
             return
         }
         if (data.status === EStatus.serializing) {
@@ -147,10 +148,11 @@ export default function EditAnime() {
     async function handleValidateAnimeNameIsExist(name: string, id: number) {
         const result = await getAnimeByNameExceptItself(name, id)
         if (result) {
-            Toast.show({
-                type: 'error',
-                text1: '该动漫已存在，请勿重复添加。如需修改，请编辑该动漫。',
-            })
+            // Toast.show({
+            //     type: 'error',
+            //     text1: '该动漫已存在，请勿重复添加。如需修改，请编辑该动漫。',
+            // })
+            baseFormRef.current?.setNameError('该动漫已存在，请勿重复添加。如需修改，请编辑该动漫。')
             return true
         }
         return false
@@ -160,5 +162,5 @@ export default function EditAnime() {
         return <Loading />
     }
 
-    return <BaseAnimeForm formData={formData} onSubmit={onSubmit} />
+    return <BaseAnimeForm formData={formData} onSubmit={onSubmit} ref={baseFormRef} />
 }

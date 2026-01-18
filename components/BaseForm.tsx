@@ -7,7 +7,7 @@ import { useUpdateEffect } from 'ahooks'
 import dayjs from 'dayjs'
 import { notificationAsync, NotificationFeedbackType } from 'expo-haptics'
 import { useNavigation } from 'expo-router'
-import React, { PropsWithChildren, useEffect, useMemo, useRef } from 'react'
+import React, { forwardRef, PropsWithChildren, useEffect, useImperativeHandle, useMemo, useRef } from 'react'
 import { Controller, FieldError, FieldErrors, SubmitHandler, useForm } from 'react-hook-form'
 import { Button, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
@@ -44,7 +44,11 @@ export interface IBaseAnimeFormProps {
     formData: TFormSchema
 }
 
-export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormProps) {
+export interface IBaseFormRef {
+    setNameError: (message: string) => void
+}
+
+const BaseForm = forwardRef<IBaseFormRef, IBaseAnimeFormProps>(function BaseForm({ formData, onSubmit: submit }, ref) {
     const navigation = useNavigation()
     useEffect(() => {
         navigation.setOptions({
@@ -65,10 +69,22 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
         watch,
         trigger,
         setValue,
+        setError,
     } = useForm<TFormSchema>({
         mode: 'all',
         resolver: zodResolver(formSchema),
         defaultValues: formData,
+    })
+
+    useImperativeHandle(ref, () => {
+        return {
+            setNameError: (message: string) => {
+                setError('name', {
+                    type: 'validate',
+                    message,
+                })
+            },
+        }
     })
 
     const fullErrors: FieldErrors<
@@ -439,7 +455,9 @@ export default function BaseForm({ formData, onSubmit: submit }: IBaseAnimeFormP
             />
         </KeyboardAwareScrollView>
     )
-}
+})
+
+export default BaseForm
 
 function FormItem({ children, label, error }: PropsWithChildren<{ label: string; error: FieldError | undefined }>) {
     return (
